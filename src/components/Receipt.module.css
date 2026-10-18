@@ -1,0 +1,134 @@
+/*
+ * 영수증.
+ *
+ * 흰 종이를 그리지 않는다 — 이 작품에 흰 문서 페이지는 없다.
+ * 어두운 하늘 위에 크림빛 글자와 점선만 놓여, 종이의 '구성'만 드러낸다.
+ * 폭은 58mm 감열지의 비율(약 32자)을 따른다.
+ */
+.sheet {
+  display: grid;
+  justify-items: center;
+  gap: 1.1em;
+  width: min(84vw, 25rem);
+  padding: clamp(22px, 4vh, 38px) clamp(20px, 5vw, 34px);
+  text-align: center;
+  color: var(--light-200);
+  font-size: var(--text-small);
+  font-weight: 200;
+  line-height: 1.9;
+  letter-spacing: 0.04em;
+  /* 판이 아니라 빛이 모인 자리. 테두리를 두르지 않는다. */
+  background: radial-gradient(
+    ellipse 78% 62% at 50% 46%,
+    rgba(10, 10, 18, 0.88),
+    rgba(6, 7, 14, 0.72) 68%,
+    rgba(6, 7, 14, 0) 100%
+  );
+}
+
+.wordmark {
+  margin: 0;
+  color: var(--light-100);
+  font-family: var(--font-display);
+  font-size: clamp(0.95rem, 2vh, 1.15rem);
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+}
+
+/* 감열지의 점선. 실선을 쓰면 표가 된다. */
+.rule {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background-image: linear-gradient(90deg, var(--line) 50%, transparent 50%);
+  background-size: 6px 1px;
+  opacity: 0.8;
+}
+
+.meta {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-micro);
+  letter-spacing: 0.12em;
+}
+
+.rows {
+  display: grid;
+  gap: 0.35em;
+  width: 100%;
+  margin: 0;
+}
+
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5em;
+}
+
+.row dt {
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  letter-spacing: 0.14em;
+}
+
+.row dd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+  margin: 0;
+  color: var(--light-100);
+}
+
+.glyph {
+  color: var(--amber-200);
+}
+
+.quote {
+  margin: 0.4em 0;
+  color: var(--light-100);
+  font-size: clamp(0.95rem, 2.1vh, 1.1rem);
+  line-height: 1.85;
+}
+
+.company {
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-micro);
+  line-height: 2;
+}
+
+.closing {
+  display: grid;
+  gap: 0.1em;
+  margin: 0;
+  color: var(--amber-200);
+  font-size: var(--text-micro);
+  line-height: 2;
+  opacity: 0.9;
+}
+
+.close {
+  margin-top: 0.6em;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.14em;
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.close:hover,
+.close:focus-visible {
+  color: var(--light-200);
+}

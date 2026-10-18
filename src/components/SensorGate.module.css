@@ -1,0 +1,70 @@
+/*
+ * 손 감지 센서 안내.
+ *
+ * 상자도 테두리도 두지 않는다 — 다른 장면의 글자와 같은 결로,
+ * 가운데에 글과 작은 빛 하나만 둔다.
+ */
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9em;
+}
+
+.prompt {
+  margin: 0;
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: clamp(1.02rem, 2.2vh, 1.32rem);
+  font-weight: 200;
+  line-height: 1.8;
+  letter-spacing: 0.02em;
+  transition: opacity var(--dur-mid) var(--ease-out-soft);
+}
+
+.hint {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.04em;
+}
+
+.notice {
+  margin: 0;
+  color: var(--amber-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.04em;
+}
+
+/* 손이 가까워질수록 밝아지는 작은 빛. 버튼처럼 보이지 않는다. */
+.glow {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+}
+
+.glow::before {
+  content: '';
+  position: absolute;
+  inset: -45%;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--halo, #e8b45e) 0%, transparent 70%);
+  opacity: var(--gate-opacity, 0.2);
+  transition: opacity 90ms linear;
+}
+
+.dot {
+  position: relative;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--core, var(--cream));
+  box-shadow: 0 0 10px var(--core, var(--cream));
+  opacity: var(--gate-opacity, 0.35);
+  transition: opacity 90ms linear;
+}

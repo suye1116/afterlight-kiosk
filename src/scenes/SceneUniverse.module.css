@@ -1,0 +1,48 @@
+/*
+ * 별자리의 이름.
+ *
+ * 지도 레이블이 아니다. 판도 테두리도 없고, 별의 색을 그대로 입은
+ * 작은 글자 하나가 별자리 곁에 떠 있을 뿐이다.
+ */
+.names {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.name {
+  position: absolute;
+  display: grid;
+  justify-items: center;
+  gap: 0.2em;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-weight: 200;
+  text-align: center;
+  white-space: nowrap;
+  transition: opacity var(--dur-slow) var(--ease-out-soft);
+}
+
+.nameText {
+  font-size: clamp(0.78rem, 1.7vh, 0.92rem);
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+.nameCount {
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  letter-spacing: 0.16em;
+  text-shadow: none;
+}
+
+/* 방금 보낸 사람에게만 */
+.mine {
+  margin: 0;
+  color: var(--amber-200);
+  font-size: var(--text-micro);
+  font-weight: 200;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  opacity: 0.86;
+}

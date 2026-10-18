@@ -1,0 +1,24 @@
+{
+  "_설명": [
+    "네 면의 배치는 **여기에 적지 않는다.**",
+    "",
+    "프로젝터의 해상도도, 벽의 실제 크기도, 어느 면이 어디인지도 아직 정해지지 않았다.",
+    "정해지지 않은 것을 코드가 가정하면, 나중에 바꿀 때 고쳐야 할 곳이 흩어진다.",
+    "",
+    "다리가 벽으로 넘기는 것은 **0~1 사이의 자리**뿐이다. 그 자리를 어느 면의",
+    "몇 번째 픽셀에 둘 것인가는 TouchDesigner가 정한다 — 프로젝션 매핑은",
+    "TD가 할 일이고, 웹사이트도 다리도 거기에 손대지 않는다.",
+    "",
+    "이 파일은 그때를 위한 **빈 서식**이다. 값을 채우더라도 다리는 읽지 않는다.",
+    "TD 쪽에서 읽어 쓰거나, 사람이 보고 TD에 옮겨 적는 데 쓴다.",
+    "벽은 붙을 때 제 이름만 알려 준다 ({ \"command\": \"hello\", \"wall\": \"north\" }).",
+    "",
+    "쓰려면 walls.json으로 복사한 뒤 채운다."
+  ],
+  "walls": [
+    { "name": "north", "resolution": null, "mapping": null, "note": "미정" },
+    { "name": "east", "resolution": null, "mapping": null, "note": "미정" },
+    { "name": "south", "resolution": null, "mapping": null, "note": "미정" },
+    { "name": "west", "resolution": null, "mapping": null, "note": "미정" }
+  ]
+}

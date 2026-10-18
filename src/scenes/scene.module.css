@@ -1,0 +1,527 @@
+/*
+ * 장면의 공통 언어.
+ *
+ * 원작 SceneCompose / SceneOpening / SceneOurUniverse의 결을 따른다.
+ * 테두리도, 상자도, 머리띠도 없다. 하늘을 가리는 것은 전부 틀린 것이다.
+ *
+ * 다만 이것은 손에 든 화면이 아니라 전시장의 태블릿이다.
+ * 글자는 한 단계 크고, 눌리는 자리는 한 뼘 넓다.
+ */
+
+.scene {
+  position: relative;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  width: 100%;
+  min-height: 100%;
+  padding: calc(var(--stage-pad-y) + var(--safe-top)) var(--gutter)
+    calc(var(--stage-pad-y) + var(--safe-bottom));
+  /* 하늘을 가리지 않는다. 누를 것만 받는다. */
+  pointer-events: none;
+}
+
+.scene > * {
+  pointer-events: auto;
+}
+
+/* 한가운데 놓이는 한 벌 */
+.middle {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(28px, 4.5vh, 56px);
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  text-align: center;
+}
+
+/* ── 글자 ─────────────────────────────────────────── */
+
+.question {
+  margin: 0;
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: clamp(1.05rem, 2.4vh, 1.45rem);
+  font-weight: 200;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+}
+
+.verse {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+  margin: 0;
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.1rem, 2.6vh, 1.6rem);
+  font-weight: 200;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+}
+
+.note {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  white-space: pre-line;
+}
+
+.quiet {
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  white-space: pre-line;
+}
+
+/* 제목 — Jost를 넓게 벌린다. 첨단이 아니라 오래된 인쇄물의 조용함. */
+.wordmark {
+  margin: 0;
+  color: var(--light-100);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vh, 2.4rem);
+  font-weight: 200;
+  letter-spacing: 0.46em;
+  text-indent: 0.46em;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;
+}
+
+/* ── 한 문장을 적는 자리 ──────────────────────────── */
+
+.field {
+  position: relative;
+  width: 100%;
+  max-width: var(--measure);
+}
+
+.input {
+  width: 100%;
+  padding: 0.5em 0.2em 0.65em;
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.1rem, 2.6vh, 1.5rem);
+  font-weight: 200;
+  line-height: 1.6;
+  letter-spacing: 0.02em;
+  text-align: center;
+  background: none;
+  border: none;
+  outline: none;
+}
+
+.input::placeholder {
+  color: var(--light-400);
+  opacity: 0.72;
+}
+
+/* 상자가 아니라 한 줄. 빛이 지나간 자리처럼. */
+.line {
+  display: block;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line) 18%,
+    var(--line-strong) 50%,
+    var(--line) 82%,
+    transparent
+  );
+}
+
+.count {
+  position: absolute;
+  right: 0;
+  margin: 0.7em 0 0;
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  letter-spacing: 0.12em;
+}
+
+.countNear {
+  color: var(--amber-300);
+}
+
+/* ── 고르는 빛들 ──────────────────────────────────── */
+
+.lights {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: center;
+  gap: clamp(20px, 5vw, 56px);
+  width: 100%;
+}
+
+.light {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1em;
+  min-width: 92px;
+  padding: 0.6em 0.4em;
+  color: var(--light-200);
+  opacity: var(--rest-opacity, 0.82);
+  transition:
+    opacity var(--dur-mid) var(--ease-out-soft),
+    transform var(--dur-mid) var(--ease-out-soft);
+}
+
+.light:hover,
+.light:focus-visible {
+  opacity: 1;
+}
+
+.dimmed {
+  opacity: 0.26;
+}
+
+/* 우주에 떠 있는 빛 하나. 버튼처럼 보이지 않는다. */
+.bulb {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(54px, 8vh, 76px);
+  height: clamp(54px, 8vh, 76px);
+  color: var(--core, var(--cream));
+}
+
+.bulb::before {
+  content: '';
+  position: absolute;
+  inset: -34%;
+  /* color-mix를 쓰지 않는다 — 전시장 태블릿의 브라우저를 알 수 없다 */
+  background: radial-gradient(circle, var(--halo, #e8b45e) 0%, transparent 68%);
+  opacity: var(--rest-halo, 0.42);
+  transition: opacity var(--dur-mid) var(--ease-out-soft);
+}
+
+.light:hover .bulb::before,
+.light:focus-visible .bulb::before {
+  opacity: 0.9;
+}
+
+.glyph {
+  position: relative;
+  font-size: clamp(1.1rem, 2.4vh, 1.5rem);
+  line-height: 1;
+  text-shadow: 0 0 18px var(--halo, #e8b45e);
+}
+
+.name {
+  font-size: clamp(0.82rem, 1.8vh, 0.98rem);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* ── 누르는 자리 ──────────────────────────────────── */
+
+.action {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9em;
+  padding: 0.8em 0.4em;
+  color: var(--light-200);
+  transition:
+    color var(--dur-fast) var(--ease-out-soft),
+    opacity var(--dur-fast) var(--ease-out-soft);
+}
+
+.action:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.action:not(:disabled):hover,
+.action:not(:disabled):focus-visible {
+  color: var(--light-100);
+}
+
+/* hover에서 버튼은 커지지도, 배경이 채워지지도 않는다. 가운데 별 하나가 살아날 뿐이다. */
+.orbit {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  color: var(--amber-300);
+  opacity: 0.6;
+  transition: opacity var(--dur-mid) var(--ease-out-soft);
+}
+
+.action:not(:disabled):hover .orbit,
+.action:not(:disabled):focus-visible .orbit {
+  opacity: 1;
+}
+
+.star {
+  width: 100%;
+  height: 100%;
+}
+
+.label {
+  font-size: clamp(0.88rem, 1.9vh, 1.02rem);
+  font-weight: 200;
+  letter-spacing: 0.14em;
+}
+
+/* ── 아래 단 ──────────────────────────────────────── */
+
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5em;
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding-top: clamp(18px, 3vh, 32px);
+}
+
+.back {
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.14em;
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--light-200);
+}
+
+.dots {
+  display: inline-flex;
+  gap: 0.75em;
+}
+
+.dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--light-400);
+  opacity: 0.35;
+  transition: all var(--dur-mid) var(--ease-out-soft);
+}
+
+.dotPast {
+  opacity: 0.6;
+}
+
+.dotOn {
+  background: var(--amber-300);
+  opacity: 1;
+  box-shadow: 0 0 10px var(--amber-400);
+}
+
+/* 가운데 정렬된 한 줄짜리 아래 단 */
+.footCenter {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(18px, 4vw, 44px);
+  width: 100%;
+  padding-top: clamp(18px, 3vh, 32px);
+}
+
+/* 손가락이 닿을 자리를 넓힌다. 보이는 크기는 그대로다. */
+@media (pointer: coarse) {
+  .back,
+  .label {
+    padding-block: 0.3em;
+  }
+}
+
+/* ── 그 시간은 언제였나 ───────────────────────────── */
+
+/*
+ * 알약 모양의 버튼을 쓰지 않는다. 테두리를 두르는 순간 서식이 된다.
+ * 고른 것만 조금 밝아지고, 아래에 아주 가는 선이 하나 켜질 뿐이다.
+ */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(14px, 3vw, 30px);
+}
+
+.chip {
+  position: relative;
+  padding: 0.5em 0.2em 0.7em;
+  color: var(--light-400);
+  font-size: clamp(0.82rem, 1.8vh, 0.96rem);
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.chip::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0.25em;
+  height: 1px;
+  background: var(--amber-300);
+  opacity: 0;
+  transform: scaleX(0.4);
+  transition:
+    opacity var(--dur-mid) var(--ease-out-soft),
+    transform var(--dur-mid) var(--ease-out-soft);
+}
+
+.chip:hover,
+.chip:focus-visible {
+  color: var(--light-200);
+}
+
+.chipOn {
+  color: var(--light-100);
+}
+
+.chipOn::after {
+  opacity: 0.6;
+  transform: scaleX(1);
+}
+
+/* ── 보내기 전에 한 번 더 보는 자리 ───────────────── */
+
+.sentence {
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.25rem, 3.2vh, 1.85rem);
+  font-weight: 200;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  text-shadow: 0 0 40px var(--halo, #e8b45e);
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(16px, 4vw, 36px);
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+}
+
+.summaryItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  white-space: nowrap;
+}
+
+.summaryGlyph {
+  color: var(--core, var(--cream));
+  text-shadow: 0 0 14px var(--halo, #e8b45e);
+}
+
+/* ── 오늘의 마음 ──────────────────────────────────── */
+
+/*
+ * 일곱 개의 작은 빛.
+ *
+ * 아이콘도 얼굴도 없다. 가운데 크림빛 점 하나와 그 둘레의 번짐뿐이고,
+ * 마음마다 달라지는 것은 번짐의 색이다. 기호를 붙이면 목록이 되고,
+ * 얼굴을 붙이면 기분을 관리하는 도구가 된다.
+ */
+.dotLight {
+  position: relative;
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--core, var(--cream));
+  box-shadow: 0 0 10px var(--core, var(--cream));
+}
+
+/* 확인 화면에서 고른 마음을 가리키는 작은 점 */
+.summaryDot {
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--core, var(--cream));
+  box-shadow: 0 0 9px var(--halo, #e8b45e);
+}
+
+/*
+ * 일곱이 한 줄에 들어가지 않는다. 줄이 바뀌어도 간격이 고르게 보이도록
+ * 가로 간격을 조금 줄이고 세로 간격을 둔다.
+ */
+.lights {
+  row-gap: clamp(22px, 4vh, 40px);
+}
+
+/* ── 보내고 난 뒤의 초대 ──────────────────────────── */
+
+/*
+ * 세 문단.
+ *
+ * 문단 사이를 넉넉히 벌린다. 붙여 두면 세 줄짜리 안내문이 되고,
+ * 벌려 두면 하나씩 뒤늦게 닿는 말이 된다.
+ */
+.invite {
+  display: grid;
+  gap: 1.5em;
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: clamp(1.02rem, 2.3vh, 1.32rem);
+  font-weight: 200;
+  line-height: 1.95;
+  letter-spacing: 0.02em;
+  text-align: center;
+}
+
+/* 마지막 문단이 물음이다. 조금 더 또렷하게. */
+.invite > span:last-child {
+  color: var(--light-100);
+}
+
+/*
+ * 두 길.
+ *
+ * 세로로 쌓는다 — 태블릿에서 손가락이 둘 사이를 헷갈리지 않게,
+ * 그리고 어느 쪽도 '오른쪽의 기본값'으로 보이지 않게.
+ * 넓은 화면에서는 나란히 선다.
+ */
+.choices {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(10px, 2vh, 20px);
+  width: 100%;
+}
+
+@media (min-width: 720px) and (min-height: 560px) {
+  .choices {
+    flex-direction: row;
+    justify-content: center;
+    gap: clamp(28px, 5vw, 64px);
+  }
+}

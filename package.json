@@ -1,0 +1,36 @@
+{
+  "name": "afterlight-kiosk",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AFTERLIGHT — 아직 도착 중인 시간 · 전시 키오스크 / 공동 우주",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc -b --noEmit",
+    "check": "node scripts/check.mjs",
+    "bridge": "node server/index.js",
+    "bridge:lan": "node server/index.js --lan",
+    "bridge:sim": "node server/index.js --sim --verbose",
+    "bridge:test": "node server/test.js",
+    "wall": "node server/stand-in/wall.js",
+    "button": "node server/stand-in/button.js",
+    "sensor": "node server/stand-in/sensor.js"
+  },
+  "dependencies": {
+    "framer-motion": "^13.4.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "serialport": "^13.0.0",
+    "zustand": "^5.0.15"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.0"
+  }
+}

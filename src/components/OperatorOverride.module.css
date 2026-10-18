@@ -1,0 +1,21 @@
+/*
+ * 운영자용 수동 전송 — 관객에게는 보이지 않는다.
+ *
+ * 테두리도, 그림자도, 호버 효과도 두지 않는다. 안내문도 없다 —
+ * 있다는 것 자체를 관객이 몰라야 한다. 화면 오른쪽 위의 빈 구석을
+ * 길게 누르면 동작한다는 것은 운영자만 알고 있으면 된다.
+ */
+.hidden {
+  position: fixed;
+  right: 0;
+  top: 0;
+  z-index: 15;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  margin: 0;
+  background: transparent;
+  border: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}

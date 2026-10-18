@@ -1,0 +1,26 @@
+/*
+ * 상태 문구.
+ *
+ * 무언가를 눌렀는데 아무 일도 없는 것처럼 느껴지지 않게, 짧게 한 줄만 띄운다.
+ * 판도 테두리도 없다. 어두운 하늘 위에 글자만 떠 있다.
+ */
+.notice {
+  position: fixed;
+  left: 50%;
+  bottom: clamp(74px, 12vh, 108px);
+  transform: translateX(-50%);
+  z-index: 9;
+  max-width: calc(100vw - 2 * var(--gutter));
+  text-align: center;
+  font-size: var(--text-tiny);
+  font-weight: 300;
+  line-height: 1.85;
+  letter-spacing: 0.04em;
+  white-space: pre-line;
+  color: var(--light-200);
+  text-shadow:
+    0 0 12px rgba(6, 7, 14, 1),
+    0 0 28px rgba(6, 7, 14, 0.95),
+    0 0 40px rgba(239, 193, 136, 0.14);
+  pointer-events: none;
+}

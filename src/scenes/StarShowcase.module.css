@@ -1,0 +1,228 @@
+/*
+ * 열 개를 들여다보는 자리.
+ *
+ * 하늘(캔버스)은 뒤에서 그대로 돈다. 이 층은 그 위에 얹히는 **앞으로 걸어
+ * 나온 빛들**이고, 글자와 한 몸으로 움직인다.
+ *
+ * 판도, 테두리도, 상자도 없다. 어두운 하늘 위에 빛과 글자만 있다.
+ */
+.stage {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.stage button {
+  pointer-events: auto;
+}
+
+/* ── 별 하나 ──────────────────────────────────────── */
+
+.star {
+  position: absolute;
+  width: 0;
+  height: 0;
+  /* 자리를 옮길 때 가운데를 기준으로 움직인다 */
+  transform-origin: center;
+  will-change: transform, opacity;
+}
+
+.float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+}
+
+/*
+ * 세 겹.
+ * 바깥에서 안으로 — 잔광 · 외곽광 · 중심광. 캔버스의 별과 같은 순서다.
+ */
+.trail,
+.halo,
+.core,
+.rays {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.trail {
+  width: 128px;
+  height: 128px;
+  opacity: 0.3;
+}
+
+.halo {
+  width: 58px;
+  height: 58px;
+}
+
+.core {
+  width: 7px;
+  height: 7px;
+}
+
+/* 간직한 빛에만 있는 얇은 갈래. 원작의 회절 십자와 같은 뜻이다. */
+.rays {
+  width: 96px;
+  height: 96px;
+  border-radius: 0;
+  overflow: visible;
+}
+
+/* ── 그 사람의 시간 ──────────────────────────────── */
+
+/*
+ * 가운데 별의 아래. 빛과 글자가 서로 다투지 않도록 충분히 내려놓는다.
+ * 별은 38%에 서고, 글은 그 아래에서 시작한다.
+ */
+.telling {
+  position: absolute;
+  left: 50%;
+  top: 56%;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 1.1em;
+  width: min(92vw, var(--measure));
+  padding: 0 var(--gutter);
+  text-align: center;
+}
+
+/* 고른 항목들 — 마음 · 간직/흘려보내기 · 언제의 시간인지 */
+.marks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.55em;
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.12em;
+}
+
+.dot {
+  color: var(--light-400);
+  opacity: 0.6;
+}
+
+/*
+ * 남긴 한 문장.
+ *
+ * 이 화면에서 가장 큰 글자지만, 별보다 앞서지는 않는다.
+ * 길어도 잘리지 않게 줄을 흘리고, 좁은 화면에서는 한 단계 작아진다.
+ */
+.sentence {
+  margin: 0;
+  max-width: 100%;
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.05rem, 2.9vh, 1.55rem);
+  font-weight: 200;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+/* 공개되지 않은 시간. 숨긴 것이 아니라 묻지 않았다는 말이다. */
+.sealed {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  line-height: 1.9;
+  letter-spacing: 0.05em;
+}
+
+.mine {
+  margin: 0;
+  color: var(--amber-200);
+  font-size: var(--text-micro);
+  font-weight: 200;
+  letter-spacing: 0.2em;
+  text-indent: 0.2em;
+  opacity: 0.85;
+}
+
+/* ── 아래 단 ──────────────────────────────────────── */
+
+.foot {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--stage-pad-y) + var(--safe-bottom));
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  width: min(92vw, var(--measure));
+}
+
+.choices {
+  display: grid;
+  justify-items: center;
+  gap: 0.9em;
+}
+
+.links {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(20px, 5vw, 44px);
+}
+
+.opening,
+.closing,
+.nth {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.1em;
+  text-align: center;
+}
+
+.nth {
+  font-size: var(--text-micro);
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+}
+
+.link {
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.14em;
+  transition: color var(--dur-fast) var(--ease-out-soft);
+}
+
+.link:hover,
+.link:focus-visible {
+  color: var(--light-100);
+}
+
+/*
+ * 좁고 낮은 화면.
+ * 별이 조금 더 위로 올라가고 글이 따라 올라온다 — 아래 단과 겹치지 않게.
+ */
+@media (max-height: 620px) {
+  .telling {
+    top: 52%;
+    gap: 0.8em;
+  }
+
+  .trail {
+    width: 96px;
+    height: 96px;
+  }
+
+  .halo {
+    width: 46px;
+    height: 46px;
+  }
+}

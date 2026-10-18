@@ -1,0 +1,12 @@
+{
+  "_설명": "이 파일을 복사해 server/config.local.json으로 저장하고 전시장 값으로 고치세요. config.local.json은 저장소에 커밋되지 않습니다(venue마다 다르기 때문입니다).",
+  "host": "127.0.0.1",
+  "lan": false,
+  "port": 9981,
+  "arduino": "",
+  "baud": 115200,
+  "printer": "file",
+  "printerPath": "receipts.txt",
+  "printerHost": "",
+  "printerPort": 9100
+}

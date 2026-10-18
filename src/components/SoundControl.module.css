@@ -1,0 +1,162 @@
+/*
+ * 소리 설정.
+ *
+ * 평소에는 기호 하나. 누르면 그 위로 조용히 펼쳐진다.
+ * 판도 테두리도 없다 — 어두운 하늘이 조금 짙어질 뿐이다.
+ */
+.corner {
+  position: fixed;
+  left: calc(var(--gutter) * 0.5 + var(--safe-left));
+  bottom: calc(var(--gutter) * 0.5 + var(--safe-bottom));
+  z-index: 12;
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.knob {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  color: var(--light-300);
+  font-size: 0.95rem;
+  line-height: 1;
+  opacity: 0.5;
+  transition:
+    opacity var(--dur-mid) var(--ease-out-soft),
+    color var(--dur-mid) var(--ease-out-soft);
+}
+
+.knob:hover,
+.knob:focus-visible {
+  opacity: 1;
+  color: var(--light-100);
+}
+
+/* 꺼져 있을 때. 사라지지는 않는다 — 다시 켤 수 있어야 하므로. */
+.off {
+  opacity: 0.3;
+}
+
+.panel {
+  display: grid;
+  gap: 2px;
+  width: min(74vw, 232px);
+  padding: 16px 16px 18px;
+  /* 상자가 아니라, 하늘이 조금 짙어진 자리 */
+  background: radial-gradient(
+    ellipse 90% 80% at 30% 40%,
+    rgba(9, 10, 18, 0.95),
+    rgba(6, 7, 14, 0.86) 70%,
+    rgba(6, 7, 14, 0) 100%
+  );
+}
+
+.title {
+  margin: 0 0 8px;
+  color: var(--light-300);
+  font-size: var(--text-micro);
+  font-weight: 200;
+  letter-spacing: 0.24em;
+  text-indent: 0.24em;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1em;
+  width: 100%;
+  padding: 0.42em 0;
+  color: var(--light-200);
+  text-align: left;
+}
+
+.sliderRow {
+  padding-bottom: 0.7em;
+}
+
+/* 꺼져 있는 줄은 물러난다. 사라지지는 않는다. */
+.dim {
+  opacity: 0.38;
+}
+
+.label {
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+/*
+ * 켜짐 표시.
+ * 네모난 토글 스위치를 두지 않는다 — 이 작품에 UI 부품은 없다.
+ * 작은 빛 하나가 켜지고 꺼질 뿐이다.
+ */
+.mark {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--light-400);
+  transition: all var(--dur-mid) var(--ease-out-soft);
+}
+
+.markOn {
+  background: var(--amber-200);
+  box-shadow: 0 0 9px var(--amber-400);
+}
+
+/* 음량 — 가는 선 하나와 작은 점 */
+.slider {
+  flex: 1;
+  min-width: 0;
+  max-width: 96px;
+  height: 18px;
+  appearance: none;
+  background: none;
+  cursor: pointer;
+}
+
+.slider::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--line);
+}
+
+.slider::-moz-range-track {
+  height: 1px;
+  background: var(--line);
+}
+
+.slider::-webkit-slider-thumb {
+  appearance: none;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border: none;
+  border-radius: 50%;
+  background: var(--amber-200);
+  box-shadow: 0 0 8px var(--amber-400);
+}
+
+.slider::-moz-range-thumb {
+  width: 7px;
+  height: 7px;
+  border: none;
+  border-radius: 50%;
+  background: var(--amber-200);
+  box-shadow: 0 0 8px var(--amber-400);
+}
+
+/* 손가락이 닿을 자리 */
+@media (pointer: coarse) {
+  .knob {
+    width: 40px;
+    height: 40px;
+  }
+
+  .slider {
+    height: 28px;
+  }
+}
