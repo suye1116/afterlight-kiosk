@@ -1,0 +1,236 @@
+/*
+ * 나의 별 — 모바일 전용 스타일.
+ *
+ * 색·서체 토큰은 키오스크(`src/styles/tokens.css`)에서 그대로 가져왔다.
+ * 파일을 공유하지 않는 이유는 그 파일이 아이패드 가로 레이아웃 변수
+ * (`--stage-pad-y` 등 가로 화면 미디어쿼리)까지 함께 갖고 있어서다 —
+ * 이 사이트는 세로 화면 전용이라 그 규칙들이 그대로 섞이면 오히려
+ * 혼란을 준다. 값만 옮기고, 레이아웃은 이 사이트에 맞게 새로 짠다.
+ */
+
+:root {
+  --ink-900: #04050b;
+  --ink-800: #06070e;
+  --ink-700: #090911;
+  --ink-600: #0d0c15;
+
+  --light-100: #f7f0e3;
+  --light-200: #d9d0c0;
+  --light-300: #9d9484;
+  --light-400: #6a6257;
+
+  --amber-200: #f7dcb0;
+  --amber-300: #efc188;
+  --amber-400: #d3945a;
+  --apricot: #e8a98c;
+
+  --line: rgba(214, 198, 176, 0.2);
+  --line-strong: rgba(240, 226, 203, 0.42);
+
+  --font-display: 'Jost', 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+  --font-korean: 'Noto Sans KR', 'Apple SD Gothic Neo', sans-serif;
+
+  --ease-out-soft: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--ink-800);
+  color: var(--light-200);
+}
+
+body {
+  font-family: var(--font-korean);
+  font-weight: 300;
+  line-height: 1.68;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+#root {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+::selection {
+  background: var(--amber-400);
+  color: var(--ink-900);
+}
+
+.page {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: clamp(28px, 8vh, 56px) clamp(20px, 6vw, 32px) clamp(56px, 10vh, 96px);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.mark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--light-400);
+}
+
+.quiet {
+  color: var(--light-300);
+}
+
+.dim {
+  color: var(--light-400);
+}
+
+.quiet-strong {
+  color: var(--light-200);
+}
+
+/* ── 안내 전용 화면(NoticePage) ─────────────────────── */
+.notice {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: 32px;
+  text-align: center;
+}
+
+.notice-mark {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.8rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--light-300);
+}
+
+.notice-body {
+  margin: 0;
+  max-width: 24rem;
+  color: var(--light-300);
+}
+
+/* ── 별 머리글 ────────────────────────────────────── */
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.realName {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.8rem, 7vw, 2.4rem);
+  color: var(--light-100);
+  text-wrap: balance;
+}
+
+.realNameEn {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+  color: var(--amber-300);
+}
+
+.constellation {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--light-300);
+}
+
+/* ── 블록 공통 ────────────────────────────────────── */
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.label {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.label.fact {
+  color: var(--light-300);
+}
+
+.label.poetry {
+  color: var(--amber-300);
+}
+
+.body {
+  margin: 0;
+  color: var(--light-200);
+}
+
+.poeticName {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  color: var(--amber-200);
+}
+
+.tags {
+  margin: 4px 0 0;
+  font-size: 0.78rem;
+  color: var(--light-400);
+}
+
+/* ── 사실 표(검증된 사실, 관측 안내) ──────────────── */
+.rows {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 6.2rem 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.row dt {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--light-400);
+}
+
+.row dd {
+  margin: 0;
+  color: var(--light-200);
+  font-variant-numeric: tabular-nums;
+}
+
+.facts {
+  margin: 4px 0 0;
+  padding-left: 1.1em;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: var(--light-300);
+}
+
+.facts li {
+  padding-left: 2px;
+}

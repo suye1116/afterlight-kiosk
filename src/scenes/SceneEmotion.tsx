@@ -39,6 +39,9 @@ export function SceneEmotion() {
         <p className={styles.question} data-safe="">
           {EMOTION.question}
         </p>
+        <p className={styles.quiet} data-safe="">
+          {EMOTION.guide}
+        </p>
 
         <div className={styles.lights}>
           {EMOTIONS.map((one) => (
@@ -69,7 +72,7 @@ export function SceneEmotion() {
         <button type="button" className={`tap ${styles.back}`} data-sound="ui.back" onClick={back}>
           {COMPOSE.back}
         </button>
-        <StepDots step={2} />
+        <StepDots step={4} />
       </div>
     </motion.div>
   )

@@ -151,7 +151,7 @@ ok('닿았다는 말도 벽으로 간다',
 
 section('영수증')
 {
-  const receipt = buildReceipt(one, 12)
+  const receipt = buildReceipt(one, 12, null)
   ok('영수증에 기록 원문이 없다', receipt.text === undefined)
   ok('고른 항목만 있다',
     receipt.when === '3년쯤 전' && receipt.emotion === '슬픔' && receipt.how === '간직한 시간')

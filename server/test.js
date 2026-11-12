@@ -5,7 +5,7 @@ import path from 'node:path'
 import os from 'node:os'
 import { isPrivateAddressForTest } from './lib/address.js'
 import { readLine, createDebounce } from './arduino.js'
-import { render } from './printer.js'
+import { render, toEscPosBuffer } from './printer.js'
 import { sanitize, sanitizeReceipt } from './sanitize.js'
 import {
   createSeen,
@@ -175,6 +175,204 @@ section('영수증에 적히는 것')
   ok('종이가 원작의 문장으로 맺는다', paper.includes('도착하고 있는 것입니다.'))
 }
 
+section('영수증의 실제 별 정보 — 다리를 거쳐도 그대로 간다')
+{
+  const validStar = {
+    realName: 'Betelgeuse',
+    korean: '베텔게우스',
+    poeticName: '흔들리는 어깨의 별',
+    constellationKorean: '오리온자리',
+    comfortMessage: '당신이 간직한 그 마음처럼, 이 별도 흔들리면서도 꺼지지는 않았어요.',
+    lookupUrl: 'https://en.wikipedia.org/wiki/Alpha_Orionis',
+  }
+
+  const withStar = sanitizeReceipt({
+    starId: 's-1',
+    seq: 1,
+    when: '3년쯤 전',
+    emotion: '슬픔',
+    how: '흘려보낸 시간',
+    company: 1,
+    star: validStar,
+    universeUrl: 'https://example.com/universe',
+  })
+  ok('실제 별 정보가 그대로 통과한다', withStar !== null && withStar.star?.realName === 'Betelgeuse')
+  ok('"우리의 우주" 주소도 그대로 통과한다', withStar?.universeUrl === 'https://example.com/universe')
+
+  const paperWithStar = render(withStar)
+  ok('종이에 실제 별 이름이 찍힌다', paperWithStar.includes('Betelgeuse'))
+  ok('종이에 소속 별자리가 찍힌다', paperWithStar.includes('오리온자리'))
+  ok('종이에 위로 메시지가 찍힌다', paperWithStar.includes(validStar.comfortMessage))
+  ok('종이에 별 찾아보는 주소가 찍힌다', paperWithStar.includes(validStar.lookupUrl))
+  ok('종이에 "우리의 우주" 주소가 찍힌다', paperWithStar.includes('https://example.com/universe'))
+
+  // 허용 목록을 벗어나면(https가 아닌 주소, 빠진 칸) 조용히 떨어진다
+  const brokenUrl = sanitizeReceipt({
+    starId: 's-2',
+    star: { ...validStar, lookupUrl: 'javascript:alert(1)' },
+  })
+  ok('https가 아닌 주소는 떨어진다(별 정보 전체가 통째로 빠진다)', brokenUrl.star === undefined)
+
+  const missingField = sanitizeReceipt({
+    starId: 's-3',
+    star: { ...validStar, comfortMessage: '' },
+  })
+  ok('한 칸이라도 비어 있으면 별 정보 전체를 찍지 않는다', missingField.star === undefined)
+
+  const noUniverseUrl = sanitizeReceipt({ starId: 's-4' })
+  ok('"우리의 우주" 주소가 없으면(아직 배포 전) 그 칸을 만들어 내지 않는다', noUniverseUrl.universeUrl === undefined)
+
+  const paperWithoutStar = render(noUniverseUrl)
+  ok('별 정보가 없으면 그 블록 전체를 찍지 않는다', !paperWithoutStar.includes('실제 별'))
+}
+
+section('영수증의 질문·답 — 원문과 같은 허용 목록·같은 정책을 따른다')
+{
+  const longQuestion = '다시 돌아갈 수 있다면 어떤 하루로 돌아가고 싶나요?'
+  const longAnswer = '초등학교 졸업식 날 다 같이 운동장에서 사진을 찍고 떡볶이를 먹으러 갔던 그 하루요'
+
+  const withoutAllow = sanitizeReceipt({
+    starId: 's-8',
+    prompt: { question: longQuestion, answer: longAnswer },
+  })
+  ok('--receipt-text를 켜지 않으면 질문도 답도 통과하지 않는다(기록 원문과 같은 정책)',
+    withoutAllow.prompt === undefined)
+
+  const withPrompt = sanitizeReceipt(
+    { starId: 's-9', prompt: { question: longQuestion, answer: longAnswer } },
+    { allowText: true },
+  )
+  ok('--receipt-text를 켜면 질문과 답이 함께 통과한다',
+    withPrompt.prompt?.question === longQuestion && withPrompt.prompt?.answer === longAnswer)
+
+  const missingAnswer = sanitizeReceipt(
+    { starId: 's-10', prompt: { question: longQuestion, answer: '' } },
+    { allowText: true },
+  )
+  ok('질문과 답 중 하나라도 비어 있으면 통째로 떨어진다(반쪽짜리를 찍지 않는다)',
+    missingAnswer.prompt === undefined)
+
+  const paper = render(withPrompt)
+  const answerWords = longAnswer.split(' ')
+  ok('종이에 질문의 낱말이 찍힌다', longQuestion.split(' ').every((word) => paper.includes(word)))
+  ok('종이에 답의 낱말이 찍힌다', answerWords.every((word) => paper.includes(word)))
+
+  const linesWithAnswerWords = paper.split('\n').filter((line) =>
+    answerWords.some((word) => line.includes(word)))
+  ok('58mm 폭을 넘는 긴 답은 한 줄에 다 넣지 않고 여러 줄로 줄바꿈한다',
+    linesWithAnswerWords.length >= 2, `(${linesWithAnswerWords.length}줄)`)
+
+  const bytesText = toEscPosBuffer(withPrompt).toString('utf8')
+  ok('프린터로 가는 바이트에도 질문의 낱말이 포함된다(미리보기와 어긋나지 않는다)',
+    longQuestion.split(' ').every((word) => bytesText.includes(word)))
+  ok('프린터로 가는 바이트에도 답의 낱말이 포함된다',
+    answerWords.every((word) => bytesText.includes(word)))
+
+  const freeformOnly = render(sanitizeReceipt({ starId: 's-11', text: '직접 적은 문장' }, { allowText: true }))
+  ok('직접 작성 방식은 그대로다(기존과 같다)', freeformOnly.includes('직접 적은 문장'))
+}
+
+section('다리의 마지막 방어선 — 브라우저 검사만 믿지 않는다')
+{
+  // 브라우저가 우회됐다고 가정하고, --receipt-text를 켠 상태로 다리에 직접 들이민다.
+  const withSlur = sanitizeReceipt(
+    { starId: 's-12', text: '진짜 개새끼 같은 하루였다' },
+    { allowText: true },
+  )
+  ok('욕설이 섞인 원문은 종이로 가지 않는다', withSlur.text === undefined)
+
+  const withPhone = sanitizeReceipt(
+    { starId: 's-13', text: '연락은 010-1234-5678 로 주세요' },
+    { allowText: true },
+  )
+  ok('전화번호처럼 보이는 원문도 종이로 가지 않는다', withPhone.text === undefined)
+
+  const withSpam = sanitizeReceipt(
+    { starId: 's-14', text: 'ㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁㅁ' },
+    { allowText: true },
+  )
+  ok('뜻 없는 반복도 종이로 가지 않는다', withSpam.text === undefined)
+
+  const sadButFine = sanitizeReceipt(
+    { starId: 's-15', text: '너무 슬프고 후회되는 하루였어요. 눈물이 멈추지 않았다.' },
+    { allowText: true },
+  )
+  ok('슬픔·후회를 적은 원문은 그대로 종이로 간다(막지 않는다)', sadButFine.text?.length > 0)
+
+  const laughterFine = sanitizeReceipt(
+    { starId: 's-16', text: 'ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ 그때 진짜 웃겼다' },
+    { allowText: true },
+  )
+  ok('자연스러운 한국어 반복(ㅋㅋㅋ)은 막지 않는다', laughterFine.text?.length > 0)
+
+  const badAnswer = sanitizeReceipt(
+    { starId: 's-17', prompt: { question: '다시 돌아갈 수 있다면?', answer: '씨발 다 망쳤어' } },
+    { allowText: true },
+  )
+  ok('질문 방식의 답에 욕설이 있으면 질문·답 통째로 찍지 않는다', badAnswer.prompt === undefined)
+
+  // §1 — 띄어쓰기·특수문자·숫자로 떼어 적는 흔한 회피도 다리에서 한 번 더 잡는다.
+  const spaced = sanitizeReceipt({ starId: 's-18', text: '진짜 씨 발 같은 하루였다' }, { allowText: true })
+  ok('띄어쓰기로 떼어 적은 욕설도 종이로 가지 않는다', spaced.text === undefined)
+
+  const symboled = sanitizeReceipt({ starId: 's-19', text: '진짜 씨.발.같은 하루였다' }, { allowText: true })
+  ok('특수문자를 끼워 넣은 욕설도 종이로 가지 않는다', symboled.text === undefined)
+
+  // §1 — "병 신발"처럼 멀쩡한 두 낱말이 띄어쓰기만 없어지면 겹치는 오탐은 피한다.
+  const notAFalsePositive = sanitizeReceipt(
+    { starId: 's-20', text: '겨울이라 병 신발을 샀다' },
+    { allowText: true },
+  )
+  ok('"병 신발"(병+신발) 같은 멀쩡한 문장은 종이에 그대로 간다', notAFalsePositive.text?.length > 0)
+}
+
+section('실제 프린터로 가는 바이트 — QR코드가 장식이 아니라 명령으로 들어 있다')
+{
+  const GSK = Buffer.from([0x1d, 0x28, 0x6b])
+
+  function countGsk(buffer) {
+    let count = 0
+    let from = 0
+    for (;;) {
+      const at = buffer.indexOf(GSK, from)
+      if (at === -1) break
+      count += 1
+      from = at + GSK.length
+    }
+    return count
+  }
+
+  const validStar = {
+    realName: 'Betelgeuse',
+    korean: '베텔게우스',
+    poeticName: '흔들리는 어깨의 별',
+    constellationKorean: '오리온자리',
+    comfortMessage: '당신이 간직한 그 마음처럼, 이 별도 흔들리면서도 꺼지지는 않았어요.',
+    lookupUrl: 'https://en.wikipedia.org/wiki/Alpha_Orionis',
+  }
+
+  const both = sanitizeReceipt({
+    starId: 's-5',
+    seq: 5,
+    star: validStar,
+    universeUrl: 'https://example.com/universe',
+  })
+  const bytesBoth = toEscPosBuffer(both)
+  // QR 하나마다 GS(k가 5번(모델·크기·정정등급·데이터저장·인쇄) 나온다
+  ok('QR 두 개 몫의 명령이 다 들어 있다', countGsk(bytesBoth) === 10, `(${countGsk(bytesBoth)})`)
+  ok('별 찾아보는 주소가 QR 데이터로 들어 있다', bytesBoth.includes(Buffer.from(validStar.lookupUrl, 'utf8')))
+  ok('"우리의 우주" 주소도 QR 데이터로 들어 있다', bytesBoth.includes(Buffer.from('https://example.com/universe', 'utf8')))
+  ok('그 주소는 읽을 수 있는 글자로도 한 번 더 찍힌다(QR을 못 읽을 때를 위해)',
+    bytesBoth.toString('utf8').includes(validStar.lookupUrl))
+  ok('초기화 명령으로 시작한다', bytesBoth.subarray(0, 2).equals(Buffer.from('\x1b@', 'ascii')))
+
+  const onlyStar = sanitizeReceipt({ starId: 's-6', star: validStar })
+  ok('"우리의 우주" 주소가 없으면 QR이 하나만 찍힌다(명령도 그만큼만)', countGsk(toEscPosBuffer(onlyStar)) === 5)
+
+  const neither = sanitizeReceipt({ starId: 's-7' })
+  ok('둘 다 없으면 QR 명령 자체가 없다', countGsk(toEscPosBuffer(neither)) === 0)
+}
+
 section('같은 마디를 두 번 처리하지 않는다')
 {
   const seen = createSeen(3)
@@ -233,6 +431,11 @@ const bridge = spawn(
     '--quiet',
     '--printer', 'file',
     '--printer-path', RECEIPTS,
+    // 이 기계의 server/config.local.json이 실제 전시 때 쓴 아두이노 포트를
+    // 담고 있을 수 있다 — 그 값이 새어 들어오면 'off'를 기대하는 아래
+    // 검사가 기계마다 다르게(설정에 따라) 흔들린다. 시험은 항상 장비
+    // 없이 결정적으로 돌아야 하므로 여기서 명시적으로 비워 둔다.
+    '--arduino', '',
   ],
   { stdio: ['ignore', 'pipe', 'pipe'] },
 )

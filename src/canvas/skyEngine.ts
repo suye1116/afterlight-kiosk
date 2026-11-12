@@ -449,12 +449,19 @@ export function createSky(canvas: HTMLCanvasElement, initial: SkyOptions = {}): 
          * 세 겹이 모두 그 마음의 색을 진다 — 중심광 · 외곽광 · 잔광.
          * 멀리서 별 하나만 보아도 어떤 마음인지 읽혀야 하기 때문이다.
          * 두 축은 나란하므로 어느 한쪽이 다른 쪽을 덮어쓰지 않는다.
+         *
+         * 실제 배정된 별의 색·밝기를 섞어 보는 시제품을 거쳤지만, 감정만
+         * 으로 짓는 처음 디자인이 이 작품에 더 어울린다고 결정했다 —
+         * 그래서 색은 다시 `emotion.light` 하나로만 정해진다. 실제 별의
+         * 색·밝기·의미는 '나의 별' 화면·영수증·QR 관측 페이지에서
+         * 그대로 보여 준다(`scenes/SceneYourStar.tsx` 등).
          */
         coreSprite: getGlowSprite(emotion.light.core),
         haloSprite: getBloomSprite(emotion.light.halo),
         trailSprite: getBloomSprite(emotion.light.trail),
         spikeSprite: getSpikeSprite(emotion.light.core),
-        spikes: tone.spikes,
+        // 십자가(+) 반짝임은 쓰지 않는다 — keep/letgo와 무관하게 늘 꺼져 있다.
+        spikes: false,
         coreScale: tone.coreScale,
         haloScale: tone.haloScale,
         phase: ((hashString(star.id) % 1000) / 1000) * Math.PI * 2,

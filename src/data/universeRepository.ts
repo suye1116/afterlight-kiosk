@@ -1,6 +1,8 @@
 import type {
   Emotion,
   MemoryType,
+  RecordMode,
+  Season,
   StarSource,
   TimeRef,
   UniverseStar,
@@ -71,6 +73,12 @@ export interface StarDraft {
   type: MemoryType
   emotion: Emotion
   timeRef: TimeRef
+  /** 고르지 않았으면 'unknown'. 비워도 되는 것은 호출하는 쪽(`useKiosk.send`)이 이미 채워 둔다. */
+  season?: Season
+  /** 적지 않았으면 직접 적은 것으로 본다. */
+  recordMode?: RecordMode
+  /** `recordMode`가 'prompt'일 때만 뜻이 있다. */
+  promptQuestion?: string
   sessionId: string
   /** 비우면 실제 관람객의 빛으로 본다 */
   source?: StarSource

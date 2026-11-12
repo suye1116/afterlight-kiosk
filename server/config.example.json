@@ -8,5 +8,6 @@
   "printer": "file",
   "printerPath": "receipts.txt",
   "printerHost": "",
-  "printerPort": 9100
+  "printerPort": 9100,
+  "observeBaseUrl": ""
 }

@@ -14,6 +14,13 @@
  *                    두 번 나지 않는가, 치워지는가, 음소거가 정말 조용한가
  *   check.sensor.ts  손 감지 센서의 셈 — 가깝다 판정 · 1초 보유 ·
  *                    손을 떼야 다시 열리는가 · 히스테리시스
+ *   check.realStars.ts 실제 별 데이터베이스 — ID 중복 · 별자리 12종 ·
+ *                    중복 등록 · verified 근거 · 계절×간직/흘려보내기
+ *   check.starAssignment.ts 실제 별 배정 알고리즘 — 조건별 점수 ·
+ *                    간직/흘려보내기 · 멱등성 · 검증 안 된 별 배제
+ *   check.firebasePayload.ts Firebase에 저장할 모양만으로 '나의 별
+ *                    이야기'·위로 문구를 글자 단위로 다시 지을 수 있는가 ·
+ *                    저장값에 기억 원문이 섞여 있지 않은가
  *
  *   npm run check
  */
@@ -60,9 +67,25 @@ await bundle('check.link.ts', 'link.mjs')
 await bundle('check.fidelity.ts', 'fidelity.mjs')
 await bundle('check.sound.ts', 'sound.mjs')
 await bundle('check.sensor.ts', 'sensor.mjs')
+await bundle('check.realStars.ts', 'realStars.mjs')
+await bundle('check.starAssignment.ts', 'starAssignment.mjs')
+await bundle('check.firebasePayload.ts', 'firebasePayload.mjs')
+await bundle('check.inputGuard.ts', 'inputGuard.mjs')
 
 let failed = 0
-for (const file of ['fidelity.mjs', 'logic.mjs', 'ui.mjs', 'sky.mjs', 'link.mjs', 'sound.mjs', 'sensor.mjs']) {
+for (const file of [
+  'fidelity.mjs',
+  'logic.mjs',
+  'ui.mjs',
+  'sky.mjs',
+  'link.mjs',
+  'sound.mjs',
+  'sensor.mjs',
+  'realStars.mjs',
+  'starAssignment.mjs',
+  'firebasePayload.mjs',
+  'inputGuard.mjs',
+]) {
   const run = spawnSync(process.execPath, [path.join(OUT, file)], { stdio: 'inherit', cwd: ROOT })
   if (run.status !== 0) failed += 1
 }

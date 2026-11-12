@@ -17,13 +17,19 @@
 export type Scene =
   | 'attract' // 대기 — 아무도 없을 때의 공동 우주
   | 'intro' // 아직 도착 중인 시간
-  | 'record' // 적는다 — 한 문장과, 그 시간이 언제였는지
+  | 'record' // 적는다 — 한 문장. 그 시간이 언제였는지는 다음 걸음에서 따로 묻는다
+  | 'time' // 고른다 — 그 순간이 얼마나 오래전인지
+  | 'season' // 고른다 — 그때는 어떤 계절이었는지
   | 'emotion' // 고른다 — 어떤 빛인가
   | 'choice' // 고른다 — 간직할 것인가, 흘려보낼 것인가
   | 'confirm' // 무엇을 보내는지 보고 나서
   | 'sending' // 빛이 우리의 우주로 건너간다
-  | 'done' // 도착했다
+  | 'yourStar' // 만난다 — 당신의 시간을 닮은 실제 별. 보통은 전송 뒤 곧장 여기로 온다
+  | 'done' // 도착했다 — 이제는 실제 별 배정이 실패한, 있어서는 안 되는 경우의 폴백 전용
+  | 'receipt' // 영수증 미리보기 — '나의 별 이야기'를 다 읽은 뒤
+  | 'finale' // 마지막 선택 — 우리의 우주를 보고 갈 것인가, 이대로 마칠 것인가
   | 'universe' // OUR UNIVERSE — 모두의 빛과 감정별 별자리
+  | 'cardGuide' // 마무리 — 가져갈 실물 별자리 카드 안내
 
 /**
  * 그 시간을 어떻게 기억하고 싶은가.
@@ -34,6 +40,26 @@ export type Scene =
  * **감정과는 다른 축이다.** 같은 그리움이라도 간직한 것과 흘려보낸 것이 있다.
  */
 export type MemoryType = 'keep' | 'letgo'
+
+/**
+ * 기억을 어떻게 적었는가.
+ *
+ *   free   — 자유롭게 적었다 (기존 방식)
+ *   prompt — 질문 하나에 답하는 방식으로 적었다
+ *
+ * 과거 기록에는 이 칸이 없다 — 없으면 `free`로 본다(`UniverseStar.recordMode`가
+ * optional인 이유). 지어내 채우지 않는다.
+ */
+export type RecordMode = 'free' | 'prompt'
+
+/**
+ * 그 기억의 계절.
+ *
+ * 고르지 않아도 되므로 'unknown'이 기본값이다. 지금은 화면에 보여 주고
+ * 기록에 실어 두기만 한다 — 실제 별 배정(기억·감정·계절·간직/흘려보내기)은
+ * 다음 단계의 일이다.
+ */
+export type Season = 'spring' | 'summer' | 'autumn' | 'winter' | 'unknown'
 
 /** 감정의 식별자. 이름과 색은 `constants/emotions.ts`에 있다. */
 export type EmotionKey = string
@@ -98,9 +124,32 @@ export interface UniverseStar {
   /** 실제 관람객의 빛인가, 점검용으로 만든 빛인가 */
   source: StarSource
 
-  /** 기억의 한 문장. 키오스크와 영수증에만 쓰인다 — 벽으로는 건너가지 않는다. */
+  /**
+   * 기억의 한 문장. 키오스크와 영수증에만 쓰인다 — 벽으로는 건너가지 않는다.
+   *
+   * 질문에 답하는 방식으로 적었을 때는 그 **답**이 여기 들어온다 —
+   * 별 배정 알고리즘은 이 칸 하나만 읽으므로, 직접 쓴 문장과 똑같이 쓰인다.
+   */
   text: string
   timeRef: TimeRef
+  /**
+   * 그 기억의 계절. 고르지 않았으면 'unknown'.
+   *
+   * 옵셔널이다 — 이 필드가 생기기 전에 저장된 빛에는 없다.
+   * 없는 값을 추측해 채우지 않는다(`data/universeRepository.ts`의 `adopt`).
+   */
+  season?: Season
+
+  /**
+   * 이 기억을 어떻게 적었는가. 없으면(과거 기록) 직접 적은 것으로 본다.
+   * 옵셔널이다 — 이 칸이 생기기 전에 저장된 빛에는 없다.
+   */
+  recordMode?: RecordMode
+  /**
+   * 질문에 답하는 방식으로 적었을 때, 그 질문의 원문.
+   * `recordMode`가 `'prompt'`일 때만 뜻이 있다.
+   */
+  promptQuestion?: string
 
   /** 감정 — 색 · 모양 · 어느 별자리에 속하는가 */
   emotion: EmotionKey

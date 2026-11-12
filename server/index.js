@@ -18,6 +18,8 @@ import { createPrinter } from './printer.js'
 import { openArduino } from './arduino.js'
 import { isPrivateAddressForTest as isPrivateAddress } from './lib/address.js'
 import { CONFIG } from './config.js'
+import { firestoreReady, firestoreStatusNote } from './firebaseAdmin.js'
+import { recordAssignment, shareToUniverse } from './firestoreWrite.js'
 
 /**
  * 하늘과 벽 사이의 다리.
@@ -61,8 +63,26 @@ function readFlags(argv) {
     printerHost: '',
     printerPort: 9100,
     receiptText: false,
+    /*
+     * "나의 별 관측 페이지"의 실제 공개 주소 — 아직 그 웹사이트를
+     * 만들지 않았으므로 기본은 빈 문자열이다. 비어 있으면 QR1은
+     * 그대로 기존 주소(위키백과)를 쓴다 — 없는 주소를 지어내 붙이지
+     * 않는다(`constants/deployment.ts`의 `PUBLIC_UNIVERSE_URL`과
+     * 같은 원칙). 사이트가 생기면 `server/config.local.json`에
+     * `"observeBaseUrl": "https://..."`를 적는다.
+     */
+    observeBaseUrl: '',
     ...CONFIG.values,
   }
+
+  /*
+   * 배포 환경(Vercel 등)에 올린 주소는 파일(`config.local.json`)이 아니라
+   * 환경변수로 들고 다니는 쪽이 더 맞는 자리라, `OBSERVE_BASE_URL`을
+   * 추가로 본다. 적용 순서는 "기본값 → 설정 파일 → 환경변수 → CLI
+   * 플래그"다 — 전시 당일 한 번만 다르게 띄워야 할 때는 여전히
+   * `--observe-base-url`이 최종적으로 이긴다.
+   */
+  if (process.env.OBSERVE_BASE_URL) flags.observeBaseUrl = process.env.OBSERVE_BASE_URL
 
   for (let i = 0; i < argv.length; i += 1) {
     const flag = argv[i]
@@ -81,6 +101,7 @@ function readFlags(argv) {
       case '--printer-host': flags.printerHost = String(next()); break
       case '--printer-port': flags.printerPort = Number(next()); break
       case '--receipt-text': flags.receiptText = true; break
+      case '--observe-base-url': flags.observeBaseUrl = String(next()); break
       default: break
     }
   }
@@ -121,6 +142,25 @@ hub.devices.printerNote = printer.describe()
 
 /** 늦게 켠 벽에 건네줄, 마지막으로 들은 우주의 상태 한 장 */
 let lastUniverse = null
+
+/**
+ * 막 도착한 별의, 벽에도 보여 줬던 그 "공개해도 되는" 시각 정보.
+ *
+ * 영수증 쪽에서 "온라인에도 함께"를 골랐을 때, 공개 `universe_stars`에
+ * 쓸 값을 여기서 다시 꺼내 쓴다 — 벽으로 넘어간 것과 **완전히 같은
+ * 허용 목록**(`sanitize.js`의 `cleanStar`)을 거친 값이라, 새로 만들
+ * 필요도, 기억 원문이 섞여 들어올 길도 없다. 오래 쌓일 일이 없도록
+ * `createSeen`과 같은 자리 수만큼만 들고 있는다.
+ */
+const ARRIVED_STAR_LIMIT = 4000
+const arrivedStars = new Map()
+function rememberArrivedStar(starId, star) {
+  arrivedStars.set(starId, star)
+  if (arrivedStars.size > ARRIVED_STAR_LIMIT) {
+    const oldest = arrivedStars.keys().next().value
+    arrivedStars.delete(oldest)
+  }
+}
 
 /**
  * 아두이노에게 말을 거는 손.
@@ -181,6 +221,53 @@ function relayToWall(message) {
   return { message: clean.message, reached }
 }
 
+/**
+ * 영수증을 찍기 **전에** Firebase 쪽 일을 끝낸다.
+ *
+ * ─── 왜 찍기 전인가(§2) ─────────────────────────────────
+ *  QR1이 가리킬 토큰은 Firestore에 실제로 적힌 뒤에야 확정된다. 먼저
+ *  찍고 나중에 토큰을 끼워 넣을 길은 없다(종이는 한 번 나오면 되돌릴
+ *  수 없다) — 그래서 반드시 이 순서다. 다만 **저장이 늦어지거나
+ *  실패해도 영수증 인쇄 자체는 막지 않는다** — `recordAssignment`에
+ *  이미 시간 제한이 있고, 실패하면 그냥 기존 주소(위키백과, 브라우저가
+ *  미리 채워 둔 값)가 그대로 남을 뿐이다.
+ *
+ * ─── 멱등성(§서버 재시작·중복 요청) ───────────────────────
+ *  `recordAssignment`가 Firestore 자체로 "이미 있으면 새로 안 만든다"를
+ *  보장한다(`firestoreWrite.js` 참고) — 같은 영수증 요청이 두 번 와도,
+ *  서버가 그 사이에 재시작해도 같은 memoryId는 항상 같은 토큰을 받는다.
+ * ───────────────────────────────────────────────────────
+ */
+async function applyFirebase(receipt) {
+  if (!receipt.assignment) return
+
+  if (firestoreReady()) {
+    const { shareOnline, ...assignment } = receipt.assignment
+    const result = await recordAssignment(receipt.starId, assignment)
+    if (result.ok) {
+      chatter(`  Firebase: assignments 토큰 ${result.reused ? '재사용' : '발급'} (${receipt.starId})`)
+      if (flags.observeBaseUrl && receipt.star) {
+        const base = flags.observeBaseUrl.replace(/\/+$/, '')
+        receipt.star.lookupUrl = `${base}/star/${result.token}`
+      }
+    } else {
+      log(`  Firebase 기록 실패(assignments): ${result.reason} — QR1은 기존 주소로 둡니다`)
+    }
+
+    if (shareOnline) {
+      const publicFields = arrivedStars.get(receipt.starId)
+      if (publicFields) {
+        const shared = await shareToUniverse(receipt.starId, publicFields)
+        if (!shared.ok) log(`  Firebase 기록 실패(universe_stars): ${shared.reason}`)
+      } else {
+        chatter('  온라인 공개를 골랐지만 공개할 시각 정보를 찾지 못했습니다')
+      }
+    }
+  } else {
+    chatter('  Firebase 연결이 없어 이번 영수증은 건너뜁니다 (QR1은 기존 주소)')
+  }
+}
+
 async function handleReceipt(client, message) {
   const receipt = sanitizeReceipt(message.receipt, { allowText: flags.receiptText })
   if (!receipt) {
@@ -203,6 +290,13 @@ async function handleReceipt(client, message) {
       note: '아직 도착이 확인되지 않았습니다',
     })
     return
+  }
+
+  try {
+    await applyFirebase(receipt)
+  } catch (error) {
+    // Firebase 쪽에서 무엇이 터져도 영수증 인쇄를 막지 않는다.
+    log(`  Firebase 처리 중 오류: ${error.message} — 인쇄는 계속합니다`)
   }
 
   try {
@@ -263,7 +357,9 @@ async function handleEvent(client, message) {
     case EVENTS.STAR_ARRIVED: {
       const starId = message.star?.id
       hub.mark(starId, 'arrived')
-      relayToWall(message)
+      const relayed = relayToWall(message)
+      // 벽에 보낸 것과 같은, 이미 걸러진 값을 그대로 기억해 둔다(위 설명 참고).
+      if (relayed?.message?.star) rememberArrivedStar(starId, relayed.message.star)
       log(`  ✦ 닿음 ${starId}`)
       announce()
       break
@@ -524,6 +620,10 @@ server.listen(flags.port, flags.host, async () => {
   log('')
   log(`  프린터   ${printer.describe()}`)
   log(`  아두이노 ${flags.arduino || '쓰지 않음'}`)
+  log(`  Firebase ${firestoreStatusNote()}`)
+  log(
+    `  관측 페이지 주소 ${flags.observeBaseUrl || '(아직 없음 — QR1은 기존 주소로 찍힙니다)'}`,
+  )
   log(`  영수증에 기록 원문 ${flags.receiptText ? '**적습니다** (--receipt-text)' : '적지 않습니다'}`)
   log('')
   if (flags.lan) {

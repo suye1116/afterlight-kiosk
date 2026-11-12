@@ -4,3 +4,4 @@ dist
 *.local
 *.tsbuildinfo
 server/config.local.json
+server/firebase-service-account.json

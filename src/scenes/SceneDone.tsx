@@ -15,6 +15,13 @@ import styles from './scene.module.css'
  *
  * '저장했습니다'가 아니다. 한 사람의 시간이 모두의 우주에 닿은 것이다.
  *
+ * ─── 지금은 폴백 전용 화면이다 ──────────────────────────
+ *  보통의 경로에서는 `finishSending()`이 실제 별을 배정한 뒤 곧장
+ *  `SceneYourStar`로 간다 — 이 화면을 거치지 않는다. 이 화면은
+ *  검증된 별이 하나도 없는, 있어서는 안 되는 경우에만 쓰인다. 그래서
+ *  이 파일과 그 안의 '초대' 흐름은 그때를 위해 그대로 남겨 두었다.
+ * ───────────────────────────────────────────────────────
+ *
  * ─── 세 박자 ───────────────────────────────────────────
  *   arrived  닿았다는 말이 머문다 (원작의 완료 연출 그대로)
  *   invite   남의 별들을 만나 보겠냐고 **묻는다**
@@ -37,6 +44,12 @@ export function SceneDone() {
   const reset = useKiosk((state) => state.reset)
   const goTo = useKiosk((state) => state.goTo)
   const goHome = useKiosk((state) => state.goHome)
+  /*
+   * 이 화면은 지금의 주된 흐름에서는 실제 별 배정이 실패한, 있어서는
+   * 안 되는 경우에만 들어온다 — 그래서 보통은 `null`이다. 그래도
+   * 미리 짐작해 적지 않고 실제 값을 읽는다.
+   */
+  const yourStar = useKiosk((state) => state.yourStar)
 
   const [receipt, setReceipt] = useState(false)
 
@@ -161,6 +174,7 @@ export function SceneDone() {
               key="receipt"
               star={sent}
               company={company}
+              yourStar={yourStar}
               onClose={() => setReceipt(false)}
             />
           ) : beat === 'invite' ? (

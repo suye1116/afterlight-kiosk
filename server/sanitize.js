@@ -1,4 +1,5 @@
 import { EVENTS } from './protocol.js'
+import { isPrintableText } from './contentGuard.js'
 
 /**
  * 걸러내는 자리.
@@ -157,6 +158,81 @@ export function sanitize(message) {
   }
 }
 
+/** `https://`로 시작하는, 너무 길지 않은 주소만 받는다. 그 외는 조용히 떨어진다. */
+function httpsUrl(value, max) {
+  if (typeof value !== 'string') return ''
+  if (!value.startsWith('https://')) return ''
+  if (value.length > max) return ''
+  return value
+}
+
+const SEASONS = new Set(['spring', 'summer', 'autumn', 'winter', 'unknown'])
+const MEMORY_TYPES = new Set(['keep', 'letgo'])
+const RECORD_MODES = new Set(['free', 'prompt'])
+
+/**
+ * Firebase에 쓸 **구조화된** 배정 정보. 허용 목록 바깥은 전부 떨어진다.
+ *
+ * 여기 적힌 칸 중 어디에도 "사람이 적은 글"은 없다 — 전부 고른 항목이거나
+ * 짚인 태그 이름뿐이다. 하나라도 모양이 이상하면(허용 목록을 벗어나면)
+ * **이 블록 전체를 버린다** — Firebase 쪽은 반쪽짜리를 받지 않는다.
+ * (`cleanReceiptStar`와 달리 `recordMode`·`promptQuestion`은 원래
+ * 없을 수 있는 칸이라 "전부 비어 있으면 안 된다" 규칙은 적용하지 않는다.)
+ */
+function cleanAssignment(raw) {
+  if (typeof raw !== 'object' || raw === null) return null
+
+  const realStarId = typeof raw.realStarId === 'string' ? raw.realStarId.slice(0, 64) : ''
+  if (!realStarId) return null
+
+  if (!SEASONS.has(raw.season)) return null
+  if (!MEMORY_TYPES.has(raw.type)) return null
+  if (typeof raw.emotion !== 'string' || raw.emotion.length === 0 || raw.emotion.length > 32) {
+    return null
+  }
+
+  const meaningTags = Array.isArray(raw.meaningTags)
+    ? raw.meaningTags.filter((tag) => typeof tag === 'string' && tag.length <= 32).slice(0, 16)
+    : []
+
+  const assignment = {
+    realStarId,
+    season: raw.season,
+    type: raw.type,
+    emotion: raw.emotion,
+    meaningTags,
+    shareOnline: raw.shareOnline === true,
+  }
+
+  if (RECORD_MODES.has(raw.recordMode)) assignment.recordMode = raw.recordMode
+  if (typeof raw.promptQuestion === 'string' && raw.promptQuestion.length > 0) {
+    assignment.promptQuestion = raw.promptQuestion.slice(0, 200)
+  }
+
+  return assignment
+}
+
+/**
+ * 실제 별 배정 결과. 허용 목록 바깥은 전부 떨어진다 — 안전한 쪽으로 틀린다.
+ * 하나라도 비어 있으면(특히 `lookupUrl`이 `https://`가 아니면) 통째로
+ * 버린다 — 반쪽짜리 별 정보를 종이에 찍지 않는다.
+ */
+function cleanReceiptStar(raw, text) {
+  if (typeof raw !== 'object' || raw === null) return null
+
+  const star = {
+    realName: text(raw.realName, 64),
+    korean: text(raw.korean, 64),
+    poeticName: text(raw.poeticName, 64),
+    constellationKorean: text(raw.constellationKorean, 32),
+    comfortMessage: text(raw.comfortMessage, 160),
+    lookupUrl: httpsUrl(raw.lookupUrl, 256),
+  }
+
+  if (Object.values(star).some((value) => value.length === 0)) return null
+  return star
+}
+
 /**
  * 영수증에 적히는 것.
  *
@@ -164,6 +240,12 @@ export function sanitize(message) {
  * 누군가의 손을 거친다. 그 사람의 한 문장이 거기까지 갈 이유가 없다.
  *
  * `allowText`는 사람이 `--receipt-text`로 켰을 때만 true가 된다.
+ *
+ * `star`(실제 별 배정 결과)와 `universeUrl`("우리의 우주" 공개 주소)도
+ * 같은 허용 목록 방식을 따른다 — 둘 다 하늘(브라우저) 쪽에서 이미
+ * 없는 값을 지어내지 않지만, 다리를 한 번 더 거치면서도 같은 원칙을
+ * 지킨다. 모양이 이상하면(허용 목록을 벗어나면) 조용히 빠진다 —
+ * 그 칸이 없는 영수증이 찍힐 뿐, 잘못된 값이 찍히지는 않는다.
  */
 export function sanitizeReceipt(raw, { allowText = false } = {}) {
   if (typeof raw !== 'object' || raw === null) return null
@@ -183,7 +265,43 @@ export function sanitizeReceipt(raw, { allowText = false } = {}) {
   }
 
   if (!receipt.starId) return null
-  if (allowText && typeof raw.text === 'string') receipt.text = raw.text.slice(0, 120)
+  /*
+   * 브라우저가 이미 한 번(두 번) 걸러낸 글이지만, 그 코드는 사람이
+   * 손댈 수 있는 자리라 믿지 않는다(`contentGuard.js` 설명 참고) —
+   * 명백한 욕설·개인정보·뜻 없는 반복이면 **종이에 찍지 않는다.**
+   * 슬픔·분노·불안·후회 같은 말은 같은 목록에 없으므로 여기서도
+   * 당연히 그대로 찍힌다.
+   */
+  if (allowText && typeof raw.text === 'string' && isPrintableText(raw.text)) {
+    receipt.text = raw.text.slice(0, 120)
+  }
+
+  /*
+   * 질문에 답하는 방식이었을 때만. `text`와 같은 자리이므로 같은 조건
+   * (`allowText`)을 따른다 — 질문과 답 둘 다 있어야만 받는다(반쪽짜리는
+   * 찍지 않는다). 답에 같은 내용 검사를 한 번 더 한다 — 질문은 고정된
+   * 10개 중 하나라 검사할 것이 없다.
+   */
+  if (allowText && raw.prompt && typeof raw.prompt === 'object') {
+    const question = text(raw.prompt.question, 120)
+    const answer = text(raw.prompt.answer, 120)
+    if (question && answer && isPrintableText(answer)) receipt.prompt = { question, answer }
+  }
+
+  const star = cleanReceiptStar(raw.star, text)
+  if (star) receipt.star = star
+
+  const universeUrl = httpsUrl(raw.universeUrl, 256)
+  if (universeUrl) receipt.universeUrl = universeUrl
+
+  /*
+   * Firebase에 쓸 구조화된 배정 정보. `star`(화면에 보일 글)와는 별개로,
+   * 없어도(모양이 이상해도) 영수증 자체는 그대로 찍힌다 — 이 칸은
+   * "나의 별 관측 페이지" QR을 살리는 데만 쓰이고, 없다고 영수증 인쇄를
+   * 막지 않는다.
+   */
+  const assignment = cleanAssignment(raw.assignment)
+  if (assignment) receipt.assignment = assignment
 
   return receipt
 }

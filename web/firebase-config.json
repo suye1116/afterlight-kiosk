@@ -1,0 +1,9 @@
+{
+  "_설명": "공개되어도 안전한 Firebase 웹 앱 설정값이다 — 비밀 키가 아니다. 실제 접근 제어는 Firestore 보안 규칙이 한다. '나의 별 관측 페이지'·'우리의 우주' 공개 웹사이트(아직 만들지 않음, 구현 3단계)를 시작할 때 이 값을 그대로 쓴다.",
+  "apiKey": "AIzaSyCQ05hCk65EH4taoNJTR9S21wHiZ9MiSSE",
+  "authDomain": "afterlight-bbe06.firebaseapp.com",
+  "projectId": "afterlight-bbe06",
+  "storageBucket": "afterlight-bbe06.firebasestorage.app",
+  "messagingSenderId": "870538535640",
+  "appId": "1:870538535640:web:3611087a2246778b072dad"
+}

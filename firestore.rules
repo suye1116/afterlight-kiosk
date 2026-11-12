@@ -1,0 +1,22 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /assignments/{token} {
+      allow get: if true;
+      allow write: if false;
+    }
+
+    match /assignment_index/{memoryId} {
+      allow read, write: if false;
+    }
+
+    match /universe_stars/{starId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

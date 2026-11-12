@@ -17,12 +17,18 @@ import { useBridge } from '@/store/useBridge'
 import { SceneAttract } from '@/scenes/SceneAttract'
 import { SceneIntro } from '@/scenes/SceneIntro'
 import { SceneRecord } from '@/scenes/SceneRecord'
+import { SceneTime } from '@/scenes/SceneTime'
+import { SceneSeason } from '@/scenes/SceneSeason'
 import { SceneEmotion } from '@/scenes/SceneEmotion'
 import { SceneChoice } from '@/scenes/SceneChoice'
+import { SceneYourStar } from '@/scenes/SceneYourStar'
 import { SceneConfirm } from '@/scenes/SceneConfirm'
 import { SceneSending } from '@/scenes/SceneSending'
 import { SceneDone } from '@/scenes/SceneDone'
+import { SceneReceipt } from '@/scenes/SceneReceipt'
+import { SceneFinale } from '@/scenes/SceneFinale'
 import { SceneUniverse } from '@/scenes/SceneUniverse'
+import { SceneCardGuide } from '@/scenes/SceneCardGuide'
 import { DONE_HOLD_MS, IDLE_MS, INVITE_HOLD_MS, useKiosk } from '@/store/useKiosk'
 import type { Scene } from '@/types'
 
@@ -38,14 +44,23 @@ const DIM_BY_SCENE: Record<Scene, number> = {
   // 인트로는 하늘이 스스로 밝아 온다. 여기서 더 물리지 않는다.
   intro: 0,
   record: 0.62,
+  time: 0.62,
+  season: 0.62,
   emotion: 0.62,
   choice: 0.62,
   confirm: 0.62,
   // 건너가는 동안에는 우주가 반쯤 물러나 있다.
   // 멀어지는 작은 점이 주변 별에 묻히지 않아야 하기 때문이다.
   sending: 0.42,
+  // 이미 닿은 뒤라, 모두 같은 깊이로 둔다 — 방금 보낸 자기 빛이 뒤에서 비친다.
+  // (실제 별 배정이 실패하는, 있어서는 안 되는 경우에만 쓰이는 폴백 화면이다.)
   done: 0.42,
+  yourStar: 0.42,
+  receipt: 0.42,
+  finale: 0.42,
   universe: 0,
+  // 공동 우주를 다 보고 난 뒤의 조용한 마무리. 같은 깊이로 둔다.
+  cardGuide: 0.42,
 }
 
 function CurrentScene({ scene }: { scene: Scene }) {
@@ -54,18 +69,30 @@ function CurrentScene({ scene }: { scene: Scene }) {
       return <SceneIntro />
     case 'record':
       return <SceneRecord />
+    case 'time':
+      return <SceneTime />
+    case 'season':
+      return <SceneSeason />
     case 'emotion':
       return <SceneEmotion />
     case 'choice':
       return <SceneChoice />
+    case 'yourStar':
+      return <SceneYourStar />
     case 'confirm':
       return <SceneConfirm />
     case 'sending':
       return <SceneSending />
     case 'done':
       return <SceneDone />
+    case 'receipt':
+      return <SceneReceipt />
+    case 'finale':
+      return <SceneFinale />
     case 'universe':
       return <SceneUniverse />
+    case 'cardGuide':
+      return <SceneCardGuide />
     default:
       return <SceneAttract />
   }
@@ -78,6 +105,14 @@ export default function App() {
   const departureToken = useKiosk((state) => state.departureToken)
   const goHome = useKiosk((state) => state.goHome)
   const syncUniverse = useKiosk((state) => state.syncUniverse)
+  /*
+   * "우리의 우주"에서 열 개를 하나씩 들여다보는 동안(`StarShowcase`),
+   * 하늘의 '또렷하게 비추는 자리'는 방금 보낸 내 빛이 아니라 **지금
+   * 가운데로 온 그 별**이어야 한다 — 그래야 캔버스의 후광·연결선과
+   * 화면 글자가 같은 별을 가리킨다. 이 걸음에서만 그렇다(§1).
+   * (`viewIndex`는 아래 §idle-timer 자리에서 한 번 더 읽는다.)
+   */
+  const viewIds = useKiosk((state) => state.viewIds)
 
   const skyRef = useRef<SkyHandle | null>(null)
 
@@ -145,8 +180,17 @@ export default function App() {
             // 지금 걸음에서 '다음'에 해당하는 일을 한다
             if (state.scene === 'attract') state.begin()
             else if (state.scene === 'intro') state.goTo('record')
-            else if (state.scene === 'record') state.toEmotion()
+            else if (state.scene === 'record') state.toTime()
+            else if (state.scene === 'time') state.toSeason()
+            else if (state.scene === 'season') state.toEmotion()
             else if (state.scene === 'confirm') void state.send()
+            /*
+             * 'yourStar'에는 이제 단일 "다음" 동작이 없다 — 영수증으로
+             * 가는 길은 '나의 별 이야기 보기'(화면 터치)를 지나야 열린다.
+             * 그래서 물리 버튼은 여기서는 아무 일도 하지 않는다.
+             */
+            else if (state.scene === 'receipt') state.goTo('finale')
+            else if (state.scene === 'finale') state.showUniverse()
             else if (state.scene === 'done') {
               /*
                * 도착 화면에서는 **묻는 자리를 건너뛰지 않는다.**
@@ -158,11 +202,14 @@ export default function App() {
                * 물리 버튼 하나로는 '아니요'를 고를 수 없다. 그건 화면을
                * 만져서 고르거나, 아무것도 누르지 않으면 된다 —
                * 가만히 두면 스스로 처음으로 돌아가고, 그건 불이익이 아니다.
+               *
+               * **지금은 실제 별 배정이 실패한, 있어서는 안 되는 경우에만
+               * 들어오는 화면이다** — 그래도 이 폴백 흐름 자체는 바꾸지 않았다.
                */
               if (state.doneBeat === 'arrived') state.invite()
               else if (state.doneBeat === 'invite') state.showUniverse()
               else state.goHome()
-            }
+            } else if (state.scene === 'cardGuide') state.goHome()
             break
           case 'reset':
             state.goHome()
@@ -214,6 +261,8 @@ export default function App() {
    * 그때부터는 평소처럼 기다렸다 처음으로 돌아간다.
    */
   const viewIndex = useKiosk((state) => state.viewIndex)
+  const watchingId =
+    scene === 'universe' && viewIndex >= 0 && viewIndex < viewIds.length ? viewIds[viewIndex] : null
 
   useEffect(() => {
     if (scene === 'attract') return
@@ -277,11 +326,30 @@ export default function App() {
          */
         stars={stars}
         constellation
-        dim={DIM_BY_SCENE[scene]}
+        /*
+         * 열 개를 하나씩 들여다보는 동안에는 한 걸음 더 물려 둔다 —
+         * 선택된 별 하나만 또렷하고, 나머지(후광·연결선 포함)는 더
+         * 은은해야 하기 때문이다(§1). 그 전후(흩어진 하늘을 보는 중,
+         * 별자리 이름을 보는 중)는 원래대로 전혀 물리지 않는다.
+         */
+        dim={watchingId ? 0.5 : DIM_BY_SCENE[scene]}
         intro
         safeZones={safeZones}
-        /* 방금 보낸 사람이 자기 빛을 찾을 수 있게 한동안 또렷하게 비춘다 */
-        focusedId={scene === 'done' || scene === 'universe' ? (sent?.id ?? null) : null}
+        /*
+         * 평소에는 방금 보낸 사람이 자기 빛을 찾을 수 있게 비춘다.
+         * 열 개를 들여다보는 동안에는 **지금 가운데로 온 그 별**로 바뀐다 —
+         * 화면 글자와 하늘의 강조가 같은 별을 가리켜야 하기 때문이다.
+         */
+        focusedId={
+          watchingId ??
+          (scene === 'done' ||
+          scene === 'yourStar' ||
+          scene === 'receipt' ||
+          scene === 'finale' ||
+          scene === 'universe'
+            ? sent?.id ?? null
+            : null)
+        }
         departure={departure}
       />
       <div className="layer layer--veil" />

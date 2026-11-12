@@ -1,8 +1,9 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { UNIVERSE } from '@/constants/text.exhibit'
+import { RECEIPT, UNIVERSE } from '@/constants/text.exhibit'
 import {
   contentOf,
+  realInfoOf,
   scatterShowcase,
   stepFor,
   TELL_AT,
@@ -41,17 +42,37 @@ import styles from './StarShowcase.module.css'
  */
 const TRAVEL = VIEWING.travelMs / 1000
 
+/**
+ * 이름이 뜨고 한 숨 돌린 뒤에야 마음·뜻이 배어 나온다.
+ * "실제 별 이름이 먼저 나타남 → 이후 감정과 짧은 이야기가 나타남"을
+ * 시간으로 적은 값이다. `tellFadeMs`(이름이 뜨는 데 걸리는 시간)의
+ * 절반만큼 더 늦춘다 — 이름이 다 뜨기 전에 다음 토막이 겹치지 않을
+ * 만큼의 여유다.
+ */
+const MEANING_DELAY = TELL_AT + VIEWING.tellFadeMs * 0.55
+
 export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) {
   const index = useKiosk((state) => state.viewIndex)
   const sessionId = useKiosk((state) => state.sessionId)
   const nextStar = useKiosk((state) => state.nextStar)
   const replayViewing = useKiosk((state) => state.replayViewing)
-  const goHome = useKiosk((state) => state.goHome)
+  /*
+   * 관람을 그만두는 두 길("감상 종료"·"그만 보기") 모두 곧바로
+   * 처음으로 가지 않는다 — 이제는 그 전에 반드시 별자리 카드 안내를
+   * 거친다(`toCardGuide`가 실제 별이 없는, 있어서는 안 되는 경우에만
+   * 안전하게 처음으로 보낸다).
+   */
+  const toCardGuide = useKiosk((state) => state.toCardGuide)
 
   const spots = scatterShowcase(stars)
   const centred = index >= 0 && index < stars.length ? stars[index] : null
   const finished = stars.length > 0 && index >= stars.length
   const content = centred ? contentOf(centred, sessionId) : null
+  /*
+   * 실제로 배정된 별. `centred`가 바뀔 때만 다시 찾는다 — `getAssignedStar`가
+   * 저장소를 읽는 일이라, 매 렌더마다 다시 열 이유가 없다.
+   */
+  const real = useMemo(() => (centred ? realInfoOf(centred) : null), [centred?.id])
 
   /*
    * 시계와 소리는 **이 둘만** 본다.
@@ -60,7 +81,15 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
    * 그것을 보고 있으면 화면이 다시 그려질 때마다 시계가 처음으로 돌아간다.
    */
   const centredId = centred?.id ?? null
-  const bodyText = content?.text ?? null
+  /*
+   * 읽을 시간을 정하는 기준 글. 실제 별이 있으면 이번에 보여 줄 모든
+   * 글(이름·별자리·의미 한 문장)을 합친 길이로 — 글이 많아진 만큼
+   * `holdFor`가 자동으로 더 오래 머물러 준다. 손으로 시간을 따로
+   * 맞출 필요가 없다.
+   */
+  const bodyText = real
+    ? `${real.realStarName} ${real.korean} ${real.constellationKorean} ${real.meaning}`
+    : content?.text ?? null
 
   /*
    * 흩어진 하늘을 잠시 보여 준 뒤에 첫 별이 다가온다.
@@ -115,6 +144,19 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
 
   return (
     <div className={styles.stage} aria-live="polite">
+      {/* ── 상단: AFTERLIGHT · 우리의 우주 · 몇 번째인가 ──── */}
+      <div className={styles.header} data-safe="">
+        <span className={styles.headerWordmark}>{RECEIPT.wordmark}</span>
+        <span className={styles.headerDot} aria-hidden="true">·</span>
+        <span>{UNIVERSE.subtitle}</span>
+        {centred && (
+          <>
+            <span className={styles.headerDot} aria-hidden="true">·</span>
+            <span className={styles.headerNth}>{UNIVERSE.viewing.nth(index + 1, stars.length)}</span>
+          </>
+        )}
+      </div>
+
       {/* ── 흩어진 별들 ─────────────────────────────── */}
       {stars.map((star, i) => (
         <ShowcaseStar
@@ -127,7 +169,7 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
         />
       ))}
 
-      {/* ── 그 사람의 시간 ──────────────────────────── */}
+      {/* ── 그 별의 이름이 먼저, 그 뜻은 그 뒤에 ──────── */}
       <AnimatePresence mode="wait">
         {centred && content && (
           <motion.div
@@ -136,42 +178,57 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10, filter: 'blur(5px)' }}
-            /*
-             * 별이 **다 온 뒤에** 배어 나온다. 움직이는 중에 글이 떠오르면
-             * 둘 다 놓친다 — 네 토막은 겹치지 않고 차례로 지나간다.
-             */
-            transition={{
-              duration: VIEWING.tellFadeMs / 1000,
-              delay: TELL_AT / 1000,
-              ease: EASE,
-            }}
+            transition={{ duration: VIEWING.tellFadeMs / 1000, delay: TELL_AT / 1000, ease: EASE }}
             data-safe=""
           >
-            <p className={styles.marks}>
-              <span style={{ color: content.emotion.light.halo }}>{content.emotion.label}</span>
-              <span className={styles.dot} aria-hidden="true">·</span>
-              <span>{content.how}</span>
-              {content.when && (
-                <>
-                  <span className={styles.dot} aria-hidden="true">·</span>
-                  <span>{content.when}</span>
-                </>
-              )}
-            </p>
-
-            {content.text ? (
-              <p className={styles.sentence}>{content.text}</p>
+            {/* 먼저: 실제 이름과 별자리 — 지어내지 않는다, 없으면 그렇다고 말한다 */}
+            {real ? (
+              <>
+                <p className={styles.realName}>
+                  {real.korean} <span className={styles.realNameEn}>{real.realStarName}</span>
+                </p>
+                <p className={styles.constellation}>{real.constellationKorean}</p>
+              </>
             ) : (
-              /*
-               * 공개에 동의하지 않은 시간.
-               * 숨긴 것이 아니라 묻지 않았다는 것을 말해 둔다.
-               */
-              <p className={styles.sealed}>{UNIVERSE.viewing.private}</p>
+              <p className={styles.sealed}>{UNIVERSE.viewing.unassigned}</p>
             )}
 
-            {content.reason === 'mine' && (
-              <p className={styles.mine}>{UNIVERSE.viewing.mine}</p>
-            )}
+            {/* 한 숨 뒤: 고른 마음 · 간직/흘려보내기, 그리고 그 별의 뜻과 이어진 한 문장 */}
+            <motion.div
+              className={styles.tellingMeaning}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: VIEWING.tellFadeMs / 1000, delay: MEANING_DELAY / 1000, ease: EASE }}
+            >
+              <p className={styles.marks}>
+                <span style={{ color: content.emotion.light.halo }}>{content.emotion.label}</span>
+                <span className={styles.dot} aria-hidden="true">·</span>
+                <span>{content.how}</span>
+                {content.when && (
+                  <>
+                    <span className={styles.dot} aria-hidden="true">·</span>
+                    <span>{content.when}</span>
+                  </>
+                )}
+              </p>
+
+              {/* 별의 뜻과 고른 마음을 이은, 공개해도 되는 한 문장 — 배정되어 있을 때만 */}
+              {real && <p className={styles.sentence}>{real.meaning}</p>}
+
+              {content.text ? (
+                /*
+                  공개에 동의한 원문이 있으면(지금은 동의를 묻는 걸음이 없어
+                  언제나 없지만, 생기면) 그 글도 이어서 보여 준다 — 기존
+                  기능을 지우지 않는다.
+                */
+                <p className={styles.sentence}>{content.text}</p>
+              ) : (
+                /* 공개에 동의하지 않은 시간. 숨긴 것이 아니라 묻지 않았다는 것을 말해 둔다. */
+                <p className={styles.sealed}>{UNIVERSE.viewing.private}</p>
+              )}
+
+              {content.reason === 'mine' && <p className={styles.mine}>{UNIVERSE.viewing.mine}</p>}
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -202,7 +259,7 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
                   type="button"
                   className={`tap ${styles.link}`}
                   data-sound="ui.back"
-                  onClick={goHome}
+                  onClick={toCardGuide}
                 >
                   {UNIVERSE.viewing.done}
                 </button>
@@ -217,8 +274,9 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
               exit={{ opacity: 0 }}
               transition={{ duration: 1.4, delay: TRAVEL, ease: EASE }}
             >
-              <p className={styles.nth}>{UNIVERSE.viewing.nth(index + 1, stars.length)}</p>
               {/*
+                몇 번째인가는 이제 상단(`.header`)에만 적는다 — 아래 단은
+                버튼만 남겨 "하단 버튼: 다음 별 / 감상 종료"를 깔끔하게 지킨다.
                 스스로 넘어가므로 누를 일이 없다. 그래도 둘을 남긴다 —
                 먼저 보고 싶은 사람과, 그만 보고 싶은 사람을 위해.
                 '다음 별'을 누르면 번호가 바뀌고, 시계는 거기서 다시 걸린다.
@@ -236,7 +294,7 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
                   type="button"
                   className={`tap ${styles.link}`}
                   data-sound="ui.back"
-                  onClick={goHome}
+                  onClick={toCardGuide}
                 >
                   {UNIVERSE.viewing.stop}
                 </button>
@@ -268,6 +326,14 @@ export function StarShowcase({ stars }: { stars: ReadonlyArray<UniverseStar> }) 
  *
  * 간직한 빛에는 얇은 갈래가 있고 흘려보낸 빛에는 없다 — 원작의 규칙 그대로다.
  * **색은 마음이 정하고, 이 갈래와 밝기는 간직/흘려보내기가 정한다.**
+ *
+ * ─── 처음 디자인으로 복원 ───────────────────────────────
+ *  실제 배정된 별의 색·밝기를 감정색과 섞어 보는 시제품을 거쳤지만,
+ *  감정만으로 짓는 처음 디자인이 이 작품에 더 어울린다고 결정했다 —
+ *  그래서 색은 다시 `emotion.light` 하나로만 정해진다. 다만 십자가(+)
+ *  반짝임은 그 시제품에서 없앤 모습을 그대로 유지한다 — 중심은 늘
+ *  작고 선명한 점 하나다.
+ * ───────────────────────────────────────────────────────
  */
 function ShowcaseStar({
   star,
@@ -284,8 +350,8 @@ function ShowcaseStar({
   const keep = star.type === 'keep'
   const light = emotion.light
 
-  // 가운데에서는 커지되, 화면을 삼키지 않는다
-  const size = (centred ? 2.5 : 1) * spot.scale
+  // 가운데에서는 커지되, 화면을 삼키지 않는다. 물러난 별은 한 단계 더 작게도 — 시선을 더 모은다.
+  const size = (centred ? 2.5 : receded ? 0.86 : 1) * spot.scale
 
   return (
     <motion.div
@@ -295,7 +361,12 @@ function ShowcaseStar({
         left: centred ? '50%' : `${spot.x * 100}%`,
         top: centred ? '38%' : `${spot.y * 100}%`,
         scale: size,
-        opacity: centred ? 1 : receded ? 0.26 : 0.82,
+        /*
+         * 선택된 별 하나만 또렷하게, 나머지는 은은한 배경으로 — 물러난
+         * 별의 밝기를 한 번 더 낮췄다(0.26 → 0.14). 흩어져만 있고 아직
+         * 아무도 가운데로 안 왔을 때(0.82)는 그대로 둔다.
+         */
+        opacity: centred ? 1 : receded ? 0.14 : 0.82,
       }}
       transition={{ duration: TRAVEL, ease: EASE }}
       aria-label={`${emotion.label} · ${how}`}
@@ -323,17 +394,7 @@ function ShowcaseStar({
             transform: `scale(${keep ? 1 : 1.22})`,
           }}
         />
-        {keep && (
-          <svg className={styles.rays} viewBox="-50 -50 100 100" aria-hidden="true">
-            <path
-              d="M0 -46 L0 46 M-46 0 L46 0"
-              stroke={light.core}
-              strokeWidth="0.8"
-              strokeLinecap="round"
-              opacity="0.5"
-            />
-          </svg>
-        )}
+        {/* 십자가(+) 반짝임은 쓰지 않는다 — keep/letgo와 무관하게 늘 꺼져 있다. */}
         <span
           className={styles.core}
           style={{

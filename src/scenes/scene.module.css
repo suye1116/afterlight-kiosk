@@ -62,6 +62,24 @@
   letter-spacing: 0.02em;
 }
 
+/*
+ * 메인 문구 아래의 설명. `.verse`보다 작지만, 충분히 읽혀야 하므로
+ * `.note`/`.quiet`보다는 크게 둔다.
+ */
+.description {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4em;
+  margin: 0;
+  max-width: var(--measure);
+  color: var(--light-300);
+  font-family: var(--font-korean);
+  font-size: clamp(0.92rem, 2vh, 1.12rem);
+  font-weight: 200;
+  line-height: 1.9;
+  letter-spacing: 0.02em;
+}
+
 .note {
   margin: 0;
   color: var(--light-400);
@@ -227,6 +245,22 @@
   font-weight: 200;
   letter-spacing: 0.08em;
   white-space: nowrap;
+}
+
+/*
+ * 선택 하나의 뜻을 짧게 풀어 주는 한 줄(간직/흘려보내기 걸음).
+ * `.name`보다 작고 조용하다 — 설명이 이름보다 또렷하면 안 된다.
+ */
+.lightHint {
+  max-width: 11em;
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  font-weight: 200;
+  line-height: 1.5;
+  letter-spacing: 0.04em;
+  text-align: center;
+  white-space: normal;
 }
 
 /* ── 누르는 자리 ──────────────────────────────────── */
@@ -401,6 +435,64 @@
   transform: scaleX(1);
 }
 
+/* ── 그때는 어떤 계절이었나 ───────────────────────── */
+
+/*
+ * 시간 칩(.chip)과는 다른 강조를 쓴다. 다섯 중 하나를 또렷하게 짚어야
+ * 하므로, 밑줄 하나로는 약하다 — 테두리와 은은한 빛을 함께 켠다.
+ * 그래도 상자는 아니다. 쉬고 있을 때는 테두리가 보이지 않는다.
+ */
+.seasons {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: clamp(10px, 2.6vw, 20px);
+  width: 100%;
+}
+
+.season {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  min-width: 84px;
+  padding: 0.6em 0.9em;
+  color: var(--light-400);
+  font-size: clamp(0.78rem, 1.7vh, 0.92rem);
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  transition:
+    color var(--dur-fast) var(--ease-out-soft),
+    border-color var(--dur-mid) var(--ease-out-soft),
+    box-shadow var(--dur-mid) var(--ease-out-soft);
+}
+
+.season:hover,
+.season:focus-visible {
+  color: var(--light-200);
+}
+
+/*
+ * 얇은 선 아이콘의 자리.
+ *
+ * 색은 여기서 정하지 않는다 — svg가 `stroke="currentColor"`로 그려지므로
+ * `.season`/`.seasonOn`의 글자색(아이보리 → 샴페인골드)을 그대로 따라간다.
+ */
+.seasonIcon {
+  display: block;
+  width: clamp(26px, 4.4vh, 34px);
+  height: clamp(26px, 4.4vh, 34px);
+}
+
+.seasonOn {
+  color: var(--light-100);
+  border-color: var(--amber-300);
+  box-shadow: 0 0 16px var(--amber-400);
+}
+
 /* ── 보내기 전에 한 번 더 보는 자리 ───────────────── */
 
 .sentence {
@@ -437,6 +529,55 @@
 .summaryGlyph {
   color: var(--core, var(--cream));
   text-shadow: 0 0 14px var(--halo, #e8b45e);
+}
+
+/* ── 확인 화면의 "온라인 공개" 선택 ───────────────────── */
+
+.sharePrompt {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  margin-top: 4px;
+}
+
+.shareLabel {
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.shareOptions {
+  display: inline-flex;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.shareOption {
+  padding: 0.55em 1.1em;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: transparent;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.shareOptionOn {
+  border-color: var(--core, var(--amber-300));
+  color: var(--cream);
+  background: color-mix(in srgb, var(--core, var(--amber-300)) 16%, transparent);
+}
+
+.shareNote {
+  margin: 0;
+  color: var(--light-400);
+  font-size: calc(var(--text-small) * 0.88);
+  letter-spacing: 0.02em;
 }
 
 /* ── 오늘의 마음 ──────────────────────────────────── */

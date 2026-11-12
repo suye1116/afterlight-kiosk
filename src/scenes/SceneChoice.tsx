@@ -61,7 +61,8 @@ export function SceneChoice() {
                   {tone.glyph}
                 </span>
               </span>
-              <span className={styles.name}>{tone.label}</span>
+              <span className={styles.name}>{CHOICE.options[tone.type].label}</span>
+              <span className={styles.lightHint}>{CHOICE.options[tone.type].hint}</span>
             </button>
           ))}
         </div>
@@ -71,7 +72,7 @@ export function SceneChoice() {
         <button type="button" className={`tap ${styles.back}`} data-sound="ui.back" onClick={back}>
           {COMPOSE.back}
         </button>
-        <StepDots step={3} />
+        <StepDots step={5} />
       </div>
     </motion.div>
   )

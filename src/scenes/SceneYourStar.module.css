@@ -1,0 +1,219 @@
+/*
+ * 나의 별.
+ *
+ * 공유 `scene.module.css`의 말(.scene · .middle · .footCenter · .back)을
+ * 그대로 쓰고, 이 화면에만 있는 것만 여기 둔다. 기본 화면은 아주 적게만
+ * 말한다 — 그래서 글자 종류도 몇 안 된다.
+ */
+
+/* ── 별 하나 ──────────────────────────────────────── */
+
+.starStage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(110px, 18vh, 176px);
+  height: clamp(110px, 18vh, 176px);
+}
+
+.trail,
+.halo,
+.core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.trail {
+  width: 100%;
+  height: 100%;
+  filter: blur(1px);
+}
+
+.halo {
+  width: 62%;
+  height: 62%;
+}
+
+.core {
+  width: 13%;
+  height: 13%;
+}
+
+/* ── 기본 화면 — 아주 적게만 ──────────────────────── */
+
+.arrived {
+  margin: 0;
+  color: var(--light-300);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+}
+
+/* 실제 별 이름. 이 화면에서 가장 큰 글자다. */
+.realName {
+  margin: 0;
+  max-width: min(92vw, var(--measure));
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.7rem, 5vh, 2.9rem);
+  font-weight: 200;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+  word-break: keep-all;
+  text-shadow: 0 0 36px var(--halo, #e8b45e);
+}
+
+/* 시적인 이름. 실제 이름 바로 아래, 한 단계 작게. */
+.poeticName {
+  margin: 0;
+  color: var(--amber-200);
+  font-family: var(--font-korean);
+  font-size: clamp(1.1rem, 2.6vh, 1.5rem);
+  font-weight: 200;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+
+/* 위로 메시지. 한 문장만, 시적인 이름보다 조용하게. */
+.comfort {
+  margin: 0;
+  max-width: min(88vw, 30rem);
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: clamp(1rem, 2.3vh, 1.3rem);
+  font-weight: 200;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+
+/* 소속 별자리. 화면 맨 아래, 작고 은은하게. */
+.constellation {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-small);
+  font-weight: 200;
+  letter-spacing: 0.1em;
+}
+
+/*
+ * '나의 별 이야기 보기' — 기본 화면의 주요 행동 버튼.
+ *
+ * 이 화면에는 다른 "다음" 버튼이 없다 — 영수증으로 가는 길이 이
+ * 버튼 하나를 지나야만 열리므로, 지나치기 어렵게 둔다. 다만
+ * 작품 전체의 "테두리도 상자도 없다"는 규칙을 깨는 유일한 자리이기도
+ * 해서, 아주 가늘고 은은하게만 그린다 — 번쩍이거나 채워지지 않는다.
+ */
+.storyPrompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85em;
+}
+
+.storyButtonPrimary {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  padding: 0.85em 1.7em;
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(0.92rem, 2vh, 1.05rem);
+  font-weight: 200;
+  letter-spacing: 0.08em;
+  background: rgba(6, 7, 14, 0.55);
+  border: 1px solid rgba(239, 193, 136, 0.42);
+  border-radius: 3px;
+  transition:
+    border-color var(--dur-fast) var(--ease-out-soft),
+    background var(--dur-fast) var(--ease-out-soft),
+    color var(--dur-fast) var(--ease-out-soft);
+}
+
+/* 아주 미세한 후광 — 번쩍이지 않게, 느리게 숨 쉬듯만 */
+.storyButtonPrimary::before {
+  content: '';
+  position: absolute;
+  inset: -16%;
+  z-index: -1;
+  border-radius: 6px;
+  background: radial-gradient(circle, var(--amber-300) 0%, transparent 72%);
+  opacity: 0.16;
+  pointer-events: none;
+  animation: storyGlow 7s var(--ease-out-soft) infinite;
+}
+
+@keyframes storyGlow {
+  0%,
+  100% {
+    opacity: 0.12;
+  }
+  50% {
+    opacity: 0.26;
+  }
+}
+
+.storyButtonPrimary:hover,
+.storyButtonPrimary:focus-visible {
+  color: var(--cream);
+  background: rgba(9, 9, 17, 0.7);
+  border-color: var(--amber-300);
+}
+
+.storyIcon {
+  display: inline-flex;
+  width: 1.05em;
+  height: 1.05em;
+  color: var(--amber-300);
+}
+
+/* 손가락이 닿을 자리를 넓힌다. 보이는 크기는 그대로다. */
+@media (pointer: coarse) {
+  .storyButtonPrimary {
+    padding-block: 1.05em;
+  }
+}
+
+/* 버튼 아래, 아주 작게 — 누르기 전에 호기심을 건다 */
+.storyHint {
+  margin: 0;
+  color: var(--light-400);
+  font-size: var(--text-micro);
+  font-weight: 200;
+  letter-spacing: 0.1em;
+}
+
+/* ── '나의 별 이야기' 펼침 ────────────────────────── */
+
+.story {
+  display: grid;
+  gap: clamp(20px, 3.2vh, 32px);
+  width: 100%;
+  max-width: var(--measure);
+}
+
+/* 펼친 화면의 제목 — 관람객이 실제로 궁금한 물음을 그대로 묻는다 */
+.storyTitle {
+  margin: 0;
+  color: var(--light-100);
+  font-family: var(--font-korean);
+  font-size: clamp(1.15rem, 2.8vh, 1.5rem);
+  font-weight: 200;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+
+.storyValue {
+  margin: 0;
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: clamp(0.95rem, 2.2vh, 1.15rem);
+  font-weight: 200;
+  line-height: 1.85;
+  letter-spacing: 0.01em;
+}
+

@@ -1,6 +1,7 @@
-import type { Emotion, UniverseStar } from '@/types'
+import type { Emotion, MemoryType, UniverseStar } from '@/types'
 import { getEmotion } from '@/constants/emotions'
 import { getTone } from '@/constants/tones'
+import { getAssignedStar } from '@/lib/starAssignment'
 import { makeRandom, hashString } from './random'
 
 /**
@@ -276,5 +277,52 @@ export function contentOf(star: UniverseStar, sessionId: string): StarContent {
     when: star.timeRef?.label ?? '',
     text: open || mine ? star.text : null,
     reason: open ? 'shared' : mine ? 'mine' : 'private',
+  }
+}
+
+/**
+ * 남의 별을 들여다볼 때 보여줄, **실제로 배정된 그 별**의 정보.
+ *
+ * ─── 개인정보 ──────────────────────────────────────────
+ *  `getAssignedStar`가 읽는 것은 `starAssignment/storage.ts`의
+ *  별도 저장소(`afterlight.starAssignments.v1`)다 — 기억 원문이 있는
+ *  `afterlight.universe.v1`과는 **다른 통**이고, 거기에는 기억 원문이
+ *  애초에 들어 있지 않다(`realStarId`·`season`·`type`·`emotion`·
+ *  `meaningTags`뿐). 그래서 이 함수가 돌려주는 어떤 값도 "공개에
+ *  동의했는가"를 가릴 필요가 없다 — `contentOf`의 `text`(원문)와는
+ *  완전히 다른 성격의 정보다.
+ *
+ *  `meaning`(한 문장)은 `reason.ts`·`comfort.ts`(둘 다 "당신"이라 부르며
+ *  그 사람 한 명에게 건네는 말)를 재사용하지 않는다 — 여기는 **다른
+ *  사람이 보는 남의 별**이라 그렇게 부를 수 없다. 대신 이미 검증되어
+ *  공개해도 되는 그 별의 상징(`symbolism`, 90개 별마다 미리 써 둔 것)과
+ *  고른 마음·간직/흘려보내기만으로 새로 짓는다.
+ *
+ *  아직 실제 별로 배정된 적이 없으면(있어서는 안 되는 경우, 또는 이
+ *  기억이 다른 브라우저에서 보내져 이 기기의 저장소에 없는 경우)
+ *  `null`이다 — 없는 별을 지어내지 않는다.
+ * ───────────────────────────────────────────────────────
+ */
+export interface RealStarInfo {
+  realStarName: string
+  korean: string
+  constellationKorean: string
+  /** 별의 상징과 고른 마음을 잇는, 공개해도 되는 한 문장(제3자 시점). */
+  meaning: string
+}
+
+function galleryLine(symbolism: string, emotionLabel: string, type: MemoryType): string {
+  const verb = type === 'keep' ? '간직했어요' : '흘려보냈어요'
+  return `'${symbolism}' — ${emotionLabel}의 마음을 ${verb}.`
+}
+
+export function realInfoOf(star: UniverseStar): RealStarInfo | null {
+  const assigned = getAssignedStar(star.id)
+  if (!assigned) return null
+  return {
+    realStarName: assigned.realStarName,
+    korean: assigned.korean,
+    constellationKorean: assigned.constellationKorean,
+    meaning: galleryLine(assigned.symbolism, getEmotion(star.emotion).label, star.type),
   }
 }

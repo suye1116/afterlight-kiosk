@@ -1,4 +1,4 @@
-import type { ConstellationId, Emotion, MemoryType, UniverseStar } from '@/types'
+import type { ConstellationId, Emotion, MemoryType, Season, UniverseStar } from '@/types'
 import { getTone } from '@/constants/tones'
 import { bandWeight } from './noise'
 import { clamp, clamp01, lerp, makeRandom, randomSeed } from './random'
@@ -354,6 +354,12 @@ export function createStar(input: {
   type: MemoryType
   emotion: Emotion
   timeRef: UniverseStar['timeRef']
+  /** 고르지 않았으면 'unknown'. 추후 별 배정의 입력값이 되지만, 자리 계산에는 쓰지 않는다. */
+  season?: Season
+  /** 적지 않았으면(과거 호출) 직접 적은 것으로 본다. 자리 계산에는 쓰지 않는다. */
+  recordMode?: UniverseStar['recordMode']
+  /** `recordMode`가 'prompt'일 때만. */
+  promptQuestion?: string
   sessionId: string
   source: UniverseStar['source']
   seq: number
@@ -398,6 +404,9 @@ export function createStar(input: {
     source: input.source,
     text: input.text,
     timeRef: input.timeRef,
+    season: input.season,
+    recordMode: input.recordMode,
+    promptQuestion: input.promptQuestion,
     emotion: input.emotion.type,
     type: input.type,
     createdAt: now,

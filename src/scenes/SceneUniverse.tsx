@@ -24,7 +24,7 @@ export function SceneUniverse() {
   const stats = useKiosk((state) => state.stats)
   const stars = useKiosk((state) => state.stars)
   const sent = useKiosk((state) => state.sent)
-  const goHome = useKiosk((state) => state.goHome)
+  const toCardGuide = useKiosk((state) => state.toCardGuide)
 
   /*
    * 남의 이야기는 **공개에 동의한 것만** 보여 준다.
@@ -155,7 +155,7 @@ export function SceneUniverse() {
           >
             {names ? UNIVERSE.hideNames : UNIVERSE.showNames}
           </button>
-          <button type="button" className={`tap ${styles.back}`} onClick={goHome}>
+          <button type="button" className={`tap ${styles.back}`} onClick={toCardGuide}>
             {UNIVERSE.back}
           </button>
         </div>

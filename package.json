@@ -14,12 +14,16 @@
     "bridge:lan": "node server/index.js --lan",
     "bridge:sim": "node server/index.js --sim --verbose",
     "bridge:test": "node server/test.js",
+    "firebase:verify": "node server/firebaseAdmin.verify.mjs",
+    "firebase:verify:write": "node server/firestoreWrite.verify.mjs",
     "wall": "node server/stand-in/wall.js",
     "button": "node server/stand-in/button.js",
     "sensor": "node server/stand-in/sensor.js"
   },
   "dependencies": {
+    "firebase-admin": "^14.5.0",
     "framer-motion": "^13.4.0",
+    "qrcode-generator": "^2.0.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "serialport": "^13.0.0",
