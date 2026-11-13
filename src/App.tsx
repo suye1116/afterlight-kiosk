@@ -170,6 +170,9 @@ export default function App() {
       onShown: (starId) => {
         kiosk().noteWallShown(starId)
       },
+      onReceiptResult: (starId, lookupUrl) => {
+        kiosk().applyReceiptLookup(starId, lookupUrl)
+      },
       onButton: (button, down) => {
         if (!down) return
         useBridge.getState().pressed(button)

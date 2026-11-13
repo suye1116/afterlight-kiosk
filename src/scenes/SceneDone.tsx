@@ -175,6 +175,9 @@ export function SceneDone() {
               star={sent}
               company={company}
               yourStar={yourStar}
+              // 이 화면은 실제 별 배정이 실패했을 때만 쓰인다 — yourStar가 늘
+              // null이라 receipt.star도 없고, QR1 자체가 그려지지 않는다.
+              qr1={null}
               onClose={() => setReceipt(false)}
             />
           ) : beat === 'invite' ? (

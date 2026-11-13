@@ -161,6 +161,20 @@
   letter-spacing: 0.08em;
 }
 
+/*
+ * 서버가 QR1 주소를 아직 확정하지 못한 짧은 동안의 빈 자리.
+ * 실제 QR(`.qrItem svg`)과 같은 크기·테두리를 써서, 주소가 확정되는
+ * 순간 자리가 덜컥 바뀌지 않게 한다.
+ */
+.qrPending {
+  width: 100%;
+  max-width: 132px;
+  aspect-ratio: 1;
+  border-radius: 2px;
+  outline: 1px solid var(--line);
+  outline-offset: 3px;
+}
+
 .quote {
   margin: 0.4em 0;
   color: var(--light-100);

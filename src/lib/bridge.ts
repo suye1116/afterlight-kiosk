@@ -17,7 +17,7 @@ import type { ReceiptData } from './receipt'
 
 export const BRIDGE_VERSION = 1
 
-/** 일곱 가지 말. 서버의 `server/protocol.js`와 같아야 한다. */
+/** 여덟 가지 말. 서버의 `server/protocol.js`와 같아야 한다. */
 export const EVENTS = {
   STAR_REQUESTED: 'star.requested',
   STAR_ACCEPTED: 'star.accepted',
@@ -26,6 +26,7 @@ export const EVENTS = {
   UNIVERSE_STATE: 'universe.state',
   BUTTON_PRESSED: 'button.pressed',
   RECEIPT_REQUESTED: 'receipt.requested',
+  RECEIPT_RESULT: 'receipt.result',
 } as const
 
 /**
@@ -123,6 +124,11 @@ export function createBridge(options: {
   onSensor?: (cm: number) => void
   /** 벽이 이 별을 실제로 띄웠다 */
   onShown?: (starId: string) => void
+  /**
+   * 서버가 영수증 QR1 주소를 확정(또는 확정 실패)했다고 알려 왔다.
+   * `lookupUrl`이 없으면(`null`) 아직/끝내 모르는 주소다 — 지어내지 않는다.
+   */
+  onReceiptResult?: (starId: string, lookupUrl: string | null) => void
   /** 이어질 때마다 한 번 불린다. 지금 우주를 한 장 보내는 자리다. */
   onOpen?: (handle: BridgeHandle) => void
 }): BridgeHandle {
@@ -222,6 +228,13 @@ export function createBridge(options: {
         if (Number.isFinite(message.cm)) options.onSensor?.(message.cm as number)
       } else if (message.event === DEVICE_EVENTS.STAR_SHOWN) {
         if (typeof message.starId === 'string') options.onShown?.(message.starId)
+      } else if (message.event === EVENTS.RECEIPT_RESULT) {
+        if (typeof message.starId === 'string') {
+          options.onReceiptResult?.(
+            message.starId,
+            typeof message.lookupUrl === 'string' ? message.lookupUrl : null,
+          )
+        }
       }
     })
 

@@ -238,8 +238,19 @@ function relayToWall(message) {
  *  서버가 그 사이에 재시작해도 같은 memoryId는 항상 같은 토큰을 받는다.
  * ───────────────────────────────────────────────────────
  */
+/**
+ * 돌려주는 값: 서버가 확정한 QR1 주소, 또는 아직/끝내 확정하지 못했으면 `null`.
+ *
+ * **화면(브라우저)에 돌려줄 값이 바로 이것이다** — 종이에는 이미
+ * `receipt.star.lookupUrl`을 직접 고쳐서 넘기지만, 화면은 이 함수를
+ * 부른 쪽(`handleReceipt`)이 `RECEIPT_RESULT`에 실어 보내 줘야만 안다.
+ * 그 전까지(또는 실패했으면) 화면은 이 값이 없는 채로 남아, 모르는
+ * 주소를 QR1인 것처럼 보여 주지 않는다.
+ */
 async function applyFirebase(receipt) {
-  if (!receipt.assignment) return
+  if (!receipt.assignment) return null
+
+  let lookupUrl = null
 
   if (firestoreReady()) {
     const { shareOnline, ...assignment } = receipt.assignment
@@ -248,7 +259,8 @@ async function applyFirebase(receipt) {
       chatter(`  Firebase: assignments 토큰 ${result.reused ? '재사용' : '발급'} (${receipt.starId})`)
       if (flags.observeBaseUrl && receipt.star) {
         const base = flags.observeBaseUrl.replace(/\/+$/, '')
-        receipt.star.lookupUrl = `${base}/star/${result.token}`
+        lookupUrl = `${base}/star/${result.token}`
+        receipt.star.lookupUrl = lookupUrl
       }
     } else {
       log(`  Firebase 기록 실패(assignments): ${result.reason} — QR1은 기존 주소로 둡니다`)
@@ -266,6 +278,8 @@ async function applyFirebase(receipt) {
   } else {
     chatter('  Firebase 연결이 없어 이번 영수증은 건너뜁니다 (QR1은 기존 주소)')
   }
+
+  return lookupUrl
 }
 
 async function handleReceipt(client, message) {
@@ -292,8 +306,15 @@ async function handleReceipt(client, message) {
     return
   }
 
+  /*
+   * 화면(브라우저)은 이 값을 받아야만 QR1을 "정상 주소"로 보여 준다
+   * (`src/store/useKiosk.ts`의 `applyReceiptLookup`). 못 구했으면
+   * `null` 그대로 보낸다 — 화면이 모르는 주소를 지어내 보여 주지
+   * 않게 하기 위해서다.
+   */
+  let lookupUrl = null
   try {
-    await applyFirebase(receipt)
+    lookupUrl = await applyFirebase(receipt)
   } catch (error) {
     // Firebase 쪽에서 무엇이 터져도 영수증 인쇄를 막지 않는다.
     log(`  Firebase 처리 중 오류: ${error.message} — 인쇄는 계속합니다`)
@@ -303,13 +324,25 @@ async function handleReceipt(client, message) {
     const result = await printer.print(receipt)
     hub.devices.printer = result.ok ? 'ready' : 'error'
     hub.devices.printerNote = result.note
-    send(client, { ...envelope(RECEIPT_RESULT), ok: result.ok, starId: receipt.starId, note: result.note })
+    send(client, {
+      ...envelope(RECEIPT_RESULT),
+      ok: result.ok,
+      starId: receipt.starId,
+      note: result.note,
+      lookupUrl,
+    })
     log(`  영수증 No.${String(receipt.seq).padStart(4, '0')} → ${result.note}`)
   } catch (error) {
     /* 프린터가 죽어도 별은 간다. 실패가 전송을 막지 않는다. */
     hub.devices.printer = 'error'
     hub.devices.printerNote = error.message
-    send(client, { ...envelope(RECEIPT_RESULT), ok: false, starId: receipt.starId, note: error.message })
+    send(client, {
+      ...envelope(RECEIPT_RESULT),
+      ok: false,
+      starId: receipt.starId,
+      note: error.message,
+      lookupUrl,
+    })
     log(`  영수증 실패: ${error.message}`)
   }
   announce()

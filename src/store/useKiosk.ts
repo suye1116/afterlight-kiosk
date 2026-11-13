@@ -118,6 +118,19 @@ interface KioskState {
    */
   yourStar: AssignedStarView | null
 
+  /**
+   * 영수증 QR1("나의 별 이야기")이 가리킬 실제 주소 — 서버가 Firebase에
+   * 기록을 확정한 뒤에야 안다(`finishSending`이 영수증을 보낼 때
+   * `pending`으로 채워 두고, `applyReceiptLookup`이 서버 응답으로 채운다).
+   *
+   * 화면은 `status`가 `ready`일 때만 QR1을 보여 준다 — `pending`인
+   * 동안이나 `unavailable`일 때는 아직 모르는(또는 끝내 못 구한) 주소를
+   * 지어내 QR처럼 보여 주지 않는다. `starId`로 어느 영수증의 응답인지
+   * 가려서, 늦게 도착한 이전 영수증의 응답이 다음 영수증을 덮어쓰지
+   * 않게 한다.
+   */
+  receiptLookup: { starId: string; status: 'pending' | 'ready' | 'unavailable'; url: string | null } | null
+
   /** 보내는 중인가. 두 번 눌러도 별이 둘 생기지 않게 하는 빗장이다. */
   sending: boolean
   /** 방금 보낸 빛. 우리의 우주에서 자기 빛을 찾는 데 쓴다. */
@@ -217,6 +230,8 @@ interface KioskState {
   syncUniverse: (stars: UniverseStar[]) => void
   /** 벽이 이 별을 띄웠다고 알려 왔다 */
   noteWallShown: (starId: string) => void
+  /** 서버가 영수증 QR1 주소를 확정(또는 실패)했다고 알려 왔다 */
+  applyReceiptLookup: (starId: string, lookupUrl: string | null) => void
 }
 
 /** 걸음의 순서. 뒤로 가기가 이 표를 거꾸로 읽는다. */
@@ -243,6 +258,7 @@ export const useKiosk = create<KioskState>((set, get) => ({
   type: null,
   shareOnline: false,
   yourStar: null,
+  receiptLookup: null,
 
   sending: false,
   sent: null,
@@ -571,7 +587,15 @@ export const useKiosk = create<KioskState>((set, get) => ({
        * 실제 별 배정은 이보다 앞서(`finishSending`의 동기 구간에서)
        * 이미 끝나 있으므로, 여기서는 그 결과(`get().yourStar`)를
        * 그대로 읽기만 한다 — 다시 배정하지 않는다.
+       *
+       * QR1 주소는 아직 모른다 — 보내는 이 순간 `pending`으로 적어
+       * 두고, 서버의 응답(`applyReceiptLookup`)이 와야 비로소 안다.
+       * 실제 별이 없으면(검증된 별이 하나도 없는 경우) QR1 자체가
+       * 없으므로 적어 둘 필요도 없다.
        */
+      if (get().yourStar) {
+        set({ receiptLookup: { starId: mine.id, status: 'pending', url: null } })
+      }
       handle.receipt(
         buildReceipt(mine, stats.byEmotion[mine.emotion] ?? 1, get().yourStar, {
           shareOnline: get().shareOnline,
@@ -620,6 +644,7 @@ export const useKiosk = create<KioskState>((set, get) => ({
       type: null,
       shareOnline: false,
       yourStar: null,
+      receiptLookup: null,
       sending: false,
       sent: null,
       notice: null,
@@ -709,4 +734,14 @@ export const useKiosk = create<KioskState>((set, get) => ({
   syncUniverse: (stars) => set({ stars, stats: statsOf(stars) }),
 
   noteWallShown: (starId) => set({ lastShownStarId: starId }),
+
+  applyReceiptLookup: (starId, lookupUrl) => {
+    const current = get().receiptLookup
+    // 지금 화면이 기다리는 영수증이 아니면(이미 다음 사람으로 넘어갔거나,
+    // 더 늦게 보낸 영수증을 기다리는 중이면) 늦게 온 응답을 버린다.
+    if (!current || current.starId !== starId) return
+    set({
+      receiptLookup: { starId, status: lookupUrl ? 'ready' : 'unavailable', url: lookupUrl },
+    })
+  },
 }))

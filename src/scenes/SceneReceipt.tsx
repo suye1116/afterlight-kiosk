@@ -29,6 +29,7 @@ export function SceneReceipt() {
   const sent = useKiosk((state) => state.sent)
   const stats = useKiosk((state) => state.stats)
   const yourStar = useKiosk((state) => state.yourStar)
+  const receiptLookup = useKiosk((state) => state.receiptLookup)
   const goTo = useKiosk((state) => state.goTo)
 
   const printing = useBridge(
@@ -38,6 +39,8 @@ export function SceneReceipt() {
   if (!sent) return null
 
   const company = stats.byEmotion[sent.emotion] ?? 1
+  // 지금 이 영수증(sent)을 기다리는 응답이 아니면(다른 별의 늦은 응답이면) 쓰지 않는다.
+  const qr1 = receiptLookup && receiptLookup.starId === sent.id ? receiptLookup : null
 
   return (
     <motion.div className={styles.scene} {...SCENE}>
@@ -45,7 +48,13 @@ export function SceneReceipt() {
         <p className={styles.note} data-safe="">
           {printing ? DONE.receiptPrinting : DONE.receipt}
         </p>
-        <Receipt star={sent} company={company} yourStar={yourStar} onClose={() => goTo('finale')} />
+        <Receipt
+          star={sent}
+          company={company}
+          yourStar={yourStar}
+          qr1={qr1}
+          onClose={() => goTo('finale')}
+        />
       </motion.div>
     </motion.div>
   )

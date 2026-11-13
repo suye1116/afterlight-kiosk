@@ -534,6 +534,12 @@ sky.send({ ...envelope(EVENTS.RECEIPT_REQUESTED), receipt: { ...paper, text: '�
 await wait(400)
 const printed = [...sky.inbox].reverse().find((m) => m.event === 'receipt.result' && m.starId === 's-003')
 ok('도착한 뒤에는 찍는다', printed?.ok === true, `(${printed?.note})`)
+/*
+ * 이 `paper`에는 `star`·`assignment`가 없다(실제 별 배정 결과가 아니다) —
+ * 그런 영수증은 QR1 주소를 지어내면 안 된다. `lookupUrl`이 정확히
+ * `null`로 와야, 화면이 "아직 모른다"와 "실제 주소가 있다"를 가릴 수 있다.
+ */
+ok('별 정보가 없는 영수증은 QR1 주소도 null로 알린다(지어내지 않는다)', printed?.lookupUrl === null)
 
 const onPaper = await readFile(RECEIPTS, 'utf8').catch(() => '')
 ok('종이에 번호가 찍혔다', onPaper.includes('No. 0003'))

@@ -452,6 +452,8 @@ export const RECEIPT = {
   qr: {
     starTitle: '실제 하늘에서 나의 별 찾기',
     starHint: '지금 바로 볼 수 있다는 뜻은 아니에요',
+    /** 서버가 QR1 주소를 아직 확정하지 못한 짧은 동안에만 보인다 */
+    starPending: '주소를 확인하는 중입니다',
     universeTitle: '우리의 우주 다시 만나기',
     universeHint: '전시장 밖에서도 둘러볼 수 있어요',
   },

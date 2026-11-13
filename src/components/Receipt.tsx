@@ -35,15 +35,35 @@ import styles from './Receipt.module.css'
  *  별 정보를 지어내 보여 주지 않는다. 기존에 있던 항목(언제·감정·
  *  어떻게·함께 머무는 수·맺음 문장)은 그대로다.
  */
-export function Receipt({ star, company, yourStar, onClose }: {
+export function Receipt({ star, company, yourStar, qr1, onClose }: {
   star: UniverseStar
   /** 같은 감정의 빛이 몇 개인가 */
   company: number
   /** 이번에 실제로 배정된 별. 배정에 실패했으면 `null`. */
   yourStar: AssignedStarView | null
+  /**
+   * 서버가 확정한 QR1 주소의 상태. `yourStar`가 있어도 이게 `ready`가
+   * 아니면 QR1을 그리지 않는다 — 모르는 주소를 지어내 보여 주지 않는다.
+   */
+  qr1: { status: 'pending' | 'ready' | 'unavailable'; url: string | null } | null
   onClose: () => void
 }) {
   const receipt = buildReceipt(star, company, yourStar)
+  /*
+   * QR1을 실제로 그릴 수 있는가.
+   *
+   * `receipt.star`(화면에 보일 이름·시적 표현)는 즉시 있지만, 그 QR이
+   * 가리킬 **실제 주소**는 서버가 Firebase에 적은 뒤에야 안다
+   * (`store/useKiosk.ts`의 `applyReceiptLookup`). 그 전에는
+   * `lib/starLookup.ts`의 임시 주소(위키백과)가 들어 있는데, 그걸 그대로
+   * QR로 찍으면 '나의 별 이야기'가 아닌 곳으로 보낸다 — 그래서 여기서는
+   * `receipt.star.lookupUrl`을 아예 쓰지 않고, 서버가 확정해 준
+   * `qr1.url`만 믿는다.
+   */
+  const qr1Url = qr1?.status === 'ready' ? qr1.url : null
+  const qr1Ready = Boolean(receipt.star) && Boolean(qr1Url)
+  const qr1Pending = Boolean(receipt.star) && qr1?.status === 'pending'
+  const showQr1Block = qr1Ready || qr1Pending
 
   /*
    * 종이가 펴지는 소리.
@@ -170,24 +190,35 @@ export function Receipt({ star, company, yourStar, onClose }: {
         두 QR코드 — 위아래로 쌓는다(58mm 감열지는 가로로 나란히 두면
         하나당 너무 작아져 스캔이 어려워진다). 각각 제목 한 줄 + 짧은
         설명 한 줄을 붙인다.
-          ① 실제 하늘에서 나의 별 찾기 — `yourStar`가 있을 때만(지어내지 않는다).
+          ① 실제 하늘에서 나의 별 찾기 — `yourStar`가 있고, 서버가 그 주소를
+             확정(`qr1.status === 'ready'`)했을 때만(지어내지 않는다).
+             확정 전에는 "확인하는 중" 자리만 비워 둔다 — 임시 주소를
+             QR처럼 찍지 않는다. 끝내 확정하지 못했으면(`unavailable`)
+             이 자리 자체를 그리지 않는다.
           ② 우리의 우주 다시 만나기 — 실제 공개 주소가 있을 때만
              (`constants/deployment.ts`의 `PUBLIC_UNIVERSE_URL`).
              지금은 둘 다 없을 수도, 하나만 있을 수도 있다.
       */}
-      {(receipt.star || receipt.universeUrl) && (
+      {(showQr1Block || receipt.universeUrl) && (
         <>
           <span className={styles.rule} />
           <div className={styles.qrColumn}>
-            {receipt.star && (
+            {qr1Ready && receipt.star && qr1Url && (
               <div className={styles.qrItem}>
                 <p className={styles.qrTitle}>{RECEIPT.qr.starTitle}</p>
                 <QrCode
-                  value={receipt.star.lookupUrl}
+                  value={qr1Url}
                   size={132}
                   label={`${receipt.star.realName} — ${RECEIPT.qr.starTitle}`}
                 />
                 <p className={styles.qrHint}>{RECEIPT.qr.starHint}</p>
+              </div>
+            )}
+            {qr1Pending && (
+              <div className={styles.qrItem}>
+                <p className={styles.qrTitle}>{RECEIPT.qr.starTitle}</p>
+                <div className={styles.qrPending} aria-hidden="true" />
+                <p className={styles.qrHint}>{RECEIPT.qr.starPending}</p>
               </div>
             )}
             {receipt.universeUrl && (
