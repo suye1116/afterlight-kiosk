@@ -234,3 +234,147 @@ body {
 .facts li {
   padding-left: 2px;
 }
+
+/* ── 우리의 우주(모바일) ──────────────────────────────── */
+.universe {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-900);
+  overflow: hidden;
+}
+
+.universe-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  padding: clamp(16px, 5vh, 28px) clamp(20px, 6vw, 32px) 0;
+  pointer-events: none;
+}
+
+.universe-state {
+  margin: auto;
+  max-width: 24rem;
+  padding: 0 32px;
+  text-align: center;
+}
+
+.universe-sky {
+  position: absolute;
+  inset: 0;
+}
+
+.sky-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.legend {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px clamp(16px, 5vw, 24px) max(10px, env(safe-area-inset-bottom));
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.legend::-webkit-scrollbar {
+  display: none;
+}
+
+.legend-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(9, 9, 17, 0.72);
+  color: var(--light-200);
+  font-family: var(--font-korean);
+  font-size: 0.78rem;
+  white-space: nowrap;
+  backdrop-filter: blur(6px);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+}
+
+/* ── 별 상세 바텀시트 ─────────────────────────────────── */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  background: rgba(4, 5, 11, 0.56);
+  animation: sheet-fade 0.18s var(--ease-out-soft);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 34rem;
+  margin: 0 auto;
+  background: var(--ink-700);
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 20px 20px 0 0;
+  padding: 10px 24px max(24px, env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: sheet-up 0.22s var(--ease-out-soft);
+}
+
+.sheet-grip {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  margin: 2px auto 8px;
+}
+
+.sheet-tone {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.sheet-note {
+  margin-top: 4px;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(16px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes sheet-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

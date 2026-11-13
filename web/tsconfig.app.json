@@ -33,6 +33,10 @@
     "../src/constants/emotions.ts",
     "../src/constants/tones.ts",
     "../src/types",
-    "../src/lib/starLookup.ts"
+    "../src/lib/starLookup.ts",
+    "../src/lib/starMath.ts",
+    "../src/lib/random.ts",
+    "../src/lib/noise.ts",
+    "../src/canvas/starForm.ts"
   ]
 }
