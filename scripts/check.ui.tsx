@@ -240,7 +240,25 @@ ok('영수증 화면 — 영수증에 적혔다고만 말한다', html.includes(
 
 // 영수증 컴포넌트 자체(데이터·출력 로직)는 그대로다
 const star = s().sent as UniverseStar
-html = render('영수증', <Receipt star={star} company={1} yourStar={yourStar} onClose={() => {}} />)
+/*
+ * `Receipt`는 이제 `qr1`(서버가 확정한 QR1 상태)을 요구한다
+ * (`store/useKiosk.ts`의 `applyReceiptLookup` 참고). 이 시험에는
+ * 실제 다리(서버)가 붙어 있지 않아 그 확정이 저절로 오지 않으므로,
+ * "서버가 확정했다면 이 주소였을 것"을 그대로 흉내 낸다 — `yourStar`가
+ * 이미 들고 있는 실제 주소(`yourStar.lookupUrl`, 아래에서 위키백과
+ * 주소임을 검증하는 바로 그 값)를 `ready` 상태로 넘긴다. 지어낸
+ * 주소가 아니다.
+ */
+html = render(
+  '영수증',
+  <Receipt
+    star={star}
+    company={1}
+    yourStar={yourStar}
+    qr1={yourStar ? { status: 'ready', url: yourStar.lookupUrl } : null}
+    onClose={() => {}}
+  />,
+)
 ok('영수증 — 제목이 있다', html.includes('A F T E R L I G H T') && html.includes('아직 도착 중인 시간'))
 ok('영수증 — 번호가 네 자리다', html.includes('No. 0001'))
 ok('영수증 — **기록 원문이 적히지 않는다**', !html.includes('친구들과 처음 여행 갔던 날'))

@@ -378,3 +378,497 @@ body {
     opacity: 1;
   }
 }
+
+/* ── 나의 별 이야기 — "나의 하늘에 담기" 진입 ──────────────── */
+.skyCta {
+  align-items: center;
+  text-align: center;
+}
+
+.skyCtaButton {
+  display: inline-block;
+  padding: 14px 28px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(240, 226, 203, 0.06);
+  color: var(--amber-200);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  transition: background 0.3s var(--ease-out-soft);
+}
+
+.skyCtaButton:active {
+  background: rgba(240, 226, 203, 0.14);
+}
+
+/* ── 실제 별 찾기 — 카메라 CTA(STEP 5-4-5, 가장 먼저 눈에 띄어야 할 버튼) ── */
+.skyCameraCta {
+  align-items: center;
+  text-align: center;
+}
+
+.skyCameraCtaButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 18px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--amber-300);
+  background: linear-gradient(135deg, var(--amber-200), var(--amber-400));
+  color: var(--ink-900);
+  font-family: var(--font-display);
+  font-size: 1.02rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  box-shadow: 0 10px 28px rgba(211, 148, 90, 0.38);
+  transition: transform 0.15s var(--ease-out-soft);
+}
+
+.skyCameraCtaButton:active {
+  transform: scale(0.98);
+}
+
+.skyCameraCtaButton svg {
+  flex-shrink: 0;
+}
+
+/* ── 나의 하늘에 담기 — 모드 선택 화면 ─────────────────────── */
+.skyTitle {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: clamp(1.7rem, 7vw, 2.2rem);
+  color: var(--light-100);
+}
+
+.skyLead {
+  margin: 0;
+  max-width: 26rem;
+}
+
+.modeList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(9, 9, 17, 0.4);
+}
+
+.modeTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: var(--amber-200);
+}
+
+.modeDesc {
+  margin: 0;
+}
+
+.modeBadge {
+  align-self: flex-start;
+  margin-top: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(214, 198, 176, 0.12);
+  color: var(--light-400);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+}
+
+.backLink {
+  align-self: center;
+  margin-top: 8px;
+  color: var(--light-300);
+  font-size: 0.86rem;
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+
+.modeCardLink {
+  color: inherit;
+  text-decoration: none;
+  transition: background 0.3s var(--ease-out-soft);
+}
+
+.modeCardLink:active {
+  background: rgba(240, 226, 203, 0.08);
+}
+
+/* ── 실제 별 찾기 — 실시간 방향 안내 ───────────────────────── */
+.skyOrientationNotice {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(214, 198, 176, 0.1);
+  color: var(--light-300);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+.alignDial {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 16px;
+  margin-top: 4px;
+  border-radius: 16px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.alignGlow {
+  position: absolute;
+  inset: -20%;
+  z-index: -1;
+  background: radial-gradient(circle, rgba(157, 179, 224, 0.26), transparent 70%);
+}
+
+.alignGlow::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(239, 193, 136, 0.55), transparent 70%);
+  opacity: var(--closeness, 0);
+  transition: opacity 0.4s var(--ease-out-soft);
+}
+
+.alignArrow {
+  font-size: 2.4rem;
+  line-height: 1;
+  color: var(--amber-200);
+  transition: transform 0.3s var(--ease-out-soft), color 0.4s var(--ease-out-soft);
+}
+
+.alignArrow[data-direction='left'] {
+  transform: translateX(-6px);
+}
+
+.alignArrow[data-direction='right'] {
+  transform: translateX(6px);
+}
+
+.alignArrow[data-direction='centered'] {
+  color: var(--amber-300);
+  transform: scale(1.15);
+}
+
+.alignText {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  color: var(--light-100);
+}
+
+.alignCaveat {
+  margin: 0;
+  color: var(--light-400);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* ── 실제 별 찾기 — 카메라 배경 화면(STEP 5-4-4/5-4-5) ───────── */
+.sky-find-camera {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-900);
+  color: var(--light-200);
+  font-family: var(--font-korean);
+}
+
+/* 비디오·별자리 오버레이가 함께 올라앉는 전체화면 레이어 — 두 레이어가
+   같은 기준 사각형을 보고 그려져야 "보이는 대로 찍힌다"가 지켜진다. */
+.sky-find-camera-viewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.sky-find-camera-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sky-find-camera-top {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 20px 20px 16px;
+  background: linear-gradient(to bottom, rgba(4, 5, 11, 0.72), transparent);
+}
+
+.sky-find-camera-names {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sky-find-camera-star {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--light-100);
+}
+
+.sky-find-camera-constellation {
+  margin: 0;
+  color: var(--light-300);
+  font-size: 0.82rem;
+}
+
+.sky-find-camera-toggle {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(4, 5, 11, 0.56);
+  color: var(--light-200);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+/*
+ * 방향 안내는 화면 중앙이 아니라 상단 바로 아래, 좁은 띠로 둔다 —
+ * 화면 중앙은 별자리 그래픽이 자연스럽게 자리 잡는 곳이라, 두 안내가
+ * 같은 자리를 다투지 않게 비켜 둔 것이다. `pointer-events: none`이라
+ * 이 띠 너머로 손가락을 움직여도(별자리를 옮기는 동작) 그대로 전달된다
+ * — 이 안내 자체에는 누를 것이 없어서 안전하다.
+ */
+.sky-find-camera-guidance {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  padding: 10px 16px 0;
+  pointer-events: none;
+}
+
+/* 밝은 하늘·야간 조명 등 배경이 무엇이든 문구·화살표가 읽히도록,
+   다이얼·캐비어트 둘 다 반투명 어두운 패널 위에 올린다. */
+.sky-find-camera-guidance .alignDial,
+.sky-find-camera-guidance .alignCaveat {
+  padding: 14px 22px;
+  border-radius: 16px;
+  background: rgba(4, 5, 11, 0.68);
+}
+
+.sky-find-camera-bottom {
+  position: relative;
+  z-index: 1;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px max(20px, env(safe-area-inset-bottom));
+  background: linear-gradient(to top, rgba(4, 5, 11, 0.76), transparent);
+}
+
+.sky-find-camera-rows {
+  display: flex;
+  gap: 20px;
+  margin: 0;
+}
+
+.sky-find-camera-rows .row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.sky-find-camera-rows dt {
+  margin: 0;
+  color: var(--light-400);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.sky-find-camera-rows dd {
+  margin: 0;
+  color: var(--light-100);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.sky-find-camera-note {
+  margin: 0;
+  max-width: 24rem;
+  color: var(--light-300);
+  font-size: 0.78rem;
+  text-align: center;
+}
+
+.sky-find-camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ── 자유롭게 담기 — 카메라 화면 ──────────────────────────── */
+.sky-free {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--ink-900);
+  color: var(--light-200);
+  font-family: var(--font-korean);
+}
+
+.sky-free-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: max(12px, env(safe-area-inset-top)) 16px 10px;
+}
+
+.sky-free-back {
+  flex: 0 0 auto;
+  color: var(--light-300);
+  font-size: 0.82rem;
+  text-decoration: none;
+}
+
+.sky-free-names {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: right;
+}
+
+.sky-free-star {
+  margin: 0;
+  color: var(--amber-200);
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sky-free-constellation {
+  margin: 2px 0 0;
+  color: var(--light-400);
+  font-size: 0.74rem;
+}
+
+.sky-free-viewport {
+  position: relative;
+  flex: 1 1 auto;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+}
+
+.sky-free-video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sky-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+}
+
+.sky-free-photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sky-free-gate {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 0 28px;
+  text-align: center;
+}
+
+.sky-free-primary {
+  padding: 12px 24px;
+  border-radius: 999px;
+  border: 1px solid var(--line-strong);
+  background: rgba(240, 226, 203, 0.06);
+  color: var(--amber-200);
+  font-family: var(--font-display);
+  font-size: 0.88rem;
+  letter-spacing: 0.05em;
+}
+
+.sky-free-secondary {
+  padding: 10px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(9, 9, 17, 0.5);
+  color: var(--light-200);
+  font-size: 0.8rem;
+}
+
+.sky-free-note {
+  padding: 8px 20px 0;
+  text-align: center;
+  font-size: 0.76rem;
+}
+
+.sky-free-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 12px 16px max(16px, env(safe-area-inset-bottom));
+  flex-wrap: wrap;
+}
+
+.sky-free-shutter {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 3px solid var(--light-100);
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sky-free-shutter-dot {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--light-100);
+}

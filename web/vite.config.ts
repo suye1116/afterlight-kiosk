@@ -1,6 +1,17 @@
+import { existsSync, readFileSync } from 'node:fs'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
+
+/**
+ * 같은 Wi-Fi에서 아이폰으로 카메라(getUserMedia)를 테스트하기 위한
+ * 임시 HTTPS 설정 — `web/.cert/`에 인증서가 있을 때만 켜진다
+ * (`.gitignore`에 걸려 커밋되지 않는다). 그 폴더를 지우면 이 블록은
+ * 조용히 꺼지고 평소의 http 개발 서버로 돌아간다 — 되돌리기를 위해
+ * 파일을 지우는 것만으로 충분하게 해 두었다.
+ */
+const certDir = fileURLToPath(new URL('./.cert/', import.meta.url))
+const hasLanCert = existsSync(`${certDir}cert.pem`) && existsSync(`${certDir}key.pem`)
 
 /**
  * 영수증 QR로 접속하는 모바일 사이트.
@@ -28,5 +39,14 @@ export default defineConfig({
   },
   server: {
     port: 5174,
+    ...(hasLanCert
+      ? {
+          host: true,
+          https: {
+            key: readFileSync(`${certDir}key.pem`),
+            cert: readFileSync(`${certDir}cert.pem`),
+          },
+        }
+      : {}),
   },
 })

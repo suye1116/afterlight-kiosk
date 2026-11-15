@@ -229,6 +229,12 @@ export function StarPage({ token }: { token: string }) {
         */}
         <p className="quiet dim">* 지금 바로 볼 수 있다는 뜻은 아니에요 — 계절·시간·날씨에 따라 다릅니다.</p>
       </section>
+
+      <section className="block skyCta">
+        <a className="skyCtaButton" href={`/star/${token}/sky`}>
+          나의 하늘에 담기
+        </a>
+      </section>
     </main>
   )
 }
